@@ -15,21 +15,21 @@ Modern YouTube downloader built with Python and CustomTkinter.
 
 ## Screenshots
 
-### Main Interface
+## Main Interface
 
-![img.png](img.png)
+![Main Interface](screenshot_main.png)
 
-### Video Preview
+## Video Preview
 
-![img_1.png](img_1.png)
+![Video Preview](screenshot_preview.png)
 
-### Quality Selection
+## Quality Selection
 
-![img_2.png](img_2.png)
+![Quality Selection](screenshot_quality.png)
 
-### Downloaded Files
+## Downloaded Files
 
-![img_3.png](img_3.png)
+![Downloaded Files](screenshot_downloaded.png)
 
 ## Technologies
 
