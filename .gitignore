@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# PyCharm
+.idea/
+
+# Virtual environment
+.venv/
+
+# Build
+build/
+dist/
+
+# PyInstaller
+*.spec
+
+# Downloads
+Youtube downloaders/
+
+# Windows
+Thumbs.db
+desktop.ini
