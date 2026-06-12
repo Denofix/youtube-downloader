@@ -22,4 +22,5 @@ Youtube downloaders/
 Thumbs.db
 desktop.ini
 
-
+# Ffmpeg
+ffmpeg.exe
