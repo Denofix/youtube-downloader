@@ -40,6 +40,16 @@ Modern YouTube downloader built with Python and CustomTkinter.
 - Pillow
 - Requests
 
+## Windows SmartScreen Notice
+
+When launching the application for the first time, Windows SmartScreen may show a warning because the executable is not digitally signed yet.
+
+This is a common warning for new independent applications built with PyInstaller.
+
+If you downloaded the file from the official GitHub Releases page, click:
+
+More info → Run anyway
+
 ## Author
 
 Nord_Fillin
