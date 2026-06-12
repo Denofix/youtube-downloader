@@ -13,6 +13,24 @@ Modern YouTube downloader built with Python and CustomTkinter.
 - Automatic download folder creation
 - FFmpeg bundled into executable
 
+## Screenshots
+
+### Main Interface
+
+![img.png](img.png)
+
+### Video Preview
+
+![img_1.png](img_1.png)
+
+### Quality Selection
+
+![img_2.png](img_2.png)
+
+### Downloaded Files
+
+![img_3.png](img_3.png)
+
 ## Technologies
 
 - Python
