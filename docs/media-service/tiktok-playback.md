@@ -17,13 +17,23 @@ The expanded local backend suite has **129 passing tests**, including real gener
 
 The browser suite now generates HEVC/10-bit input, converts it to MP4, actually plays the H.264 result in a browser and reads visible pixels from a frame. It also checks the compatible default, hiding cached watermarked options, highest-source selection, mobile overflow and existing MP3/GIF/image/history flows. Actual CI results are recorded in PR #3; the workflow file alone is not evidence of a pass.
 
-The live verification script supports `--quality lowest|highest|all` and optional `--save-results` for local playback inspection. Release verification checks each offered rendition, not only the smallest video. Dated live reports are linked here after those checks finish. The owner-instance playback gate remains open until the updated output is played there.
+The live verification script supports `--quality lowest|highest|all` and optional `--save-results` for local playback inspection. The [release live report](live-tiktok-compatible-2026-11-11.json) passed all four offered source renditions plus MP3 for the owner-supplied post, not only the smallest video:
+
+| Source rendition | Delivered result | Bytes |
+| --- | --- | ---: |
+| H.265, 576 × 1024 | H.264/AAC MP4, 576 × 1024 | 21,284,333 |
+| H.264, 576 × 1024 | H.264/AAC MP4, 576 × 1024 | 18,422,346 |
+| H.265, 720 × 1280 | H.264/AAC MP4, 720 × 1280 | 30,362,416 |
+| H.265, 1080 × 1920 | H.264/AAC MP4, 1080 × 1920 | 61,747,167 |
+| Clip audio | MP3, approximately 73.6 seconds | 1,767,594 |
+
+All results were fully decoded and retrieved with HTTP 200. The video probes confirm AVC/H.264, 8-bit yuv420p, 30 FPS, AAC-LC and two audio channels. Representative frames at 30 and 72 seconds from the highest-resolution result show visible video and no TikTok watermark; this is a sample review, not an exhaustive logo detector. No source video or frames are republished. The owner-instance playback gate remains open until the new result is played in Windows Media Player.
 
 ## SoundCloud scope
 
 The newly supplied `mC39...` share link resolves to the same `jeembo-music/fallen-baldscum-remix` track, ID 2398469850. It still returns `drm_protected`; changing URL form does not produce an unprotected format. yt-dlp documents this SoundCloud encrypted-format limitation in [issue #17335](https://github.com/yt-dlp/yt-dlp/issues/17335). A creator-provided official download or a different available unprotected track is required.
 
-The unprotected control track is [ethmusic/lostin-powers-she-so-heavy](https://soundcloud.com/ethmusic/lostin-powers-she-so-heavy). Its original M4A and MP3 results are checked separately. This establishes support for that available source, not universal SoundCloud downloading.
+The unprotected control track is [ethmusic/lostin-powers-she-so-heavy](https://soundcloud.com/ethmusic/lostin-powers-she-so-heavy). Its original M4A and MP3 results both passed again; see the [separate live report](live-soundcloud-playback-followup-2026-11-11.json). This establishes support for that available source, not universal SoundCloud downloading.
 
 ## Update the existing instance
 
