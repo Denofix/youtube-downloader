@@ -26,7 +26,18 @@ Branch: `feat/soundcloud-tiktok`, based on the owner-verified `feat/media-platfo
 
 The dated [SoundCloud report](live-soundcloud-2026-11-11.json) and [TikTok report](live-tiktok-2026-11-11.json) record tool versions, selected formats and outcomes. The earlier YouTube owner report remains unchanged. The optional live script now supports audio-only tracks as well as videos. Network blocks are surfaced without exposing upstream errors, signed media links, cookies or server paths.
 
-The browser suite adds two source forms with explicitly marked **UI metadata fixtures**: SoundCloud on desktop and portrait TikTok on mobile. It checks unique format labels, MP3 controls and overflow, then continues the real generated-file upload/conversion/download checks. These forms are not live-source evidence. CI run links will be recorded after publication.
+The browser suite adds two source forms with explicitly marked **UI metadata fixtures**: SoundCloud on desktop and portrait TikTok on mobile. It checks unique format labels, MP3 controls and overflow, then continues the real generated-file upload/conversion/download checks. These forms are not live-source evidence.
+
+[GitHub Actions run 43009512299](https://github.com/Denofix/youtube-downloader/actions/runs/43009512299) passed both jobs for source commit 49e5dc8ff55cd52b803b127497fd90adcd9d54d3: 103 tests, frozen dependency/export comparison, frontend checks, the real Chromium scenarios and Docker Compose build/start. Artifact 13848659885 contains seven actual screenshots (ZIP SHA256 269c65f501e69aa0f730db0d397e570ac1aeb602905a9e1fe08720828ed4391e). The two new source screenshots were inspected and preserved below.
+
+<details>
+<summary>Source forms from the actual CI browser (metadata fixtures)</summary>
+
+![SoundCloud desktop form with generated metadata](../screenshots/source-soundcloud-desktop.png)
+
+![TikTok mobile form with generated metadata](../screenshots/source-tiktok-mobile.png)
+
+</details>
 
 ## Extractor and dependency review
 
