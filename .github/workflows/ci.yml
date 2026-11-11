@@ -54,6 +54,7 @@ jobs:
         run: |
           uv run --no-sync python scripts/check_ui.py --chromium /usr/bin/chromium
           uv run --no-sync python scripts/check_photos_ui.py --chromium /usr/bin/chromium
+          uv run --no-sync python scripts/check_instagram_ui.py --chromium /usr/bin/chromium
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
