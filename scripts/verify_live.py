@@ -19,6 +19,10 @@ def main():
         "--ephemeral", action="store_true", help="Use a disposable local API/worker"
     )
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--quality", choices=("lowest", "highest", "all"), default="lowest")
+    parser.add_argument(
+        "--save-results", type=Path, help="Optional directory for local playback inspection"
+    )
     args = parser.parse_args()
     checks = []
     with (
@@ -32,7 +36,7 @@ def main():
             return response.json()
 
         def wait(task):
-            deadline = time.monotonic() + 180
+            deadline = time.monotonic() + 600
             while time.monotonic() < deadline:
                 response = client.get("/api/tasks/" + task["id"])
                 response.raise_for_status()
@@ -40,7 +44,7 @@ def main():
                 if current["state"] not in {"queued", "running"}:
                     return current
                 time.sleep(0.4)
-            raise TimeoutError("Live task did not complete within three minutes.")
+            raise TimeoutError("Live task did not complete within ten minutes.")
 
         task = wait(post("/analyze", {"url": args.url}))
         checks.append(
@@ -52,19 +56,22 @@ def main():
                 for c in task["result"]["choices"]
                 if c["kind"] == task["result"]["kind"] and c["has_audio"]
             ]
-            choice = (
-                min(
-                    choices,
-                    key=lambda c: (
-                        c["height"] or 99999,
-                        c["operation"] != "merge",
-                        c["container"] != "mp4",
-                    ),
-                )
-                if choices
-                else None
+            ordered = sorted(
+                choices,
+                key=lambda c: (
+                    c.get("quality_height") or c.get("height") or 0,
+                    c.get("width") or 0,
+                    c["source_format_ids"],
+                ),
             )
-            if choice is None:
+            selected = (
+                ordered
+                if args.quality == "all"
+                else ordered[-1:]
+                if args.quality == "highest"
+                else ordered[:1]
+            )
+            if not selected:
                 checks.append(
                     {
                         "scenario": "select a source with audio",
@@ -75,37 +82,55 @@ def main():
                         },
                     }
                 )
-            for profile in ("original", "mp3") if choice else ():
-                result = wait(
-                    post(
-                        "/downloads",
-                        {
-                            "analysis_id": task["id"],
-                            "choice_id": choice["id"],
-                            "profile": profile,
-                            "bitrate": 192,
-                        },
+            video_profile = "compatible" if task["result"]["platform"] == "TikTok" else "original"
+            for index, choice in enumerate(selected):
+                for profile in (video_profile, "mp3") if index == 0 else (video_profile,):
+                    result = wait(
+                        post(
+                            "/downloads",
+                            {
+                                "analysis_id": task["id"],
+                                "choice_id": choice["id"],
+                                "profile": profile,
+                                "bitrate": 192,
+                            },
+                        )
                     )
-                )
-                check = {
-                    "scenario": "download " + profile,
-                    "state": result["state"],
-                    "source_format_ids": choice["source_format_ids"],
-                    "selected_height": choice["height"],
-                    "selected_width": choice["width"],
-                    "selected_kind": choice["kind"],
-                    "error": result["error"],
-                }
-                if result["state"] == "completed":
-                    asset_id = result["result"]["asset_id"]
-                    check["metadata"] = client.get("/api/assets/" + asset_id).json()["metadata"]
-                    response = client.get("/api/assets/" + asset_id + "/file")
-                    check["download_http_status"] = response.status_code
-                    check["download_bytes"] = len(response.content)
-                checks.append(check)
+                    check = {
+                        "scenario": "download " + profile,
+                        "state": result["state"],
+                        "source_format_ids": choice["source_format_ids"],
+                        "selected_height": choice["height"],
+                        "selected_width": choice["width"],
+                        "selected_kind": choice["kind"],
+                        "error": result["error"],
+                    }
+                    if result["state"] == "completed":
+                        check["resolved_source_format_ids"] = result["result"].get(
+                            "source_format_ids"
+                        )
+                        asset_id = result["result"]["asset_id"]
+                        check["metadata"] = client.get("/api/assets/" + asset_id).json()["metadata"]
+                        response = client.get("/api/assets/" + asset_id + "/file")
+                        check["download_http_status"] = response.status_code
+                        check["download_bytes"] = len(response.content)
+                        if args.save_results and response.status_code == 200:
+                            args.save_results.mkdir(parents=True, exist_ok=True)
+                            suffix = (
+                                ".mp3"
+                                if profile == "mp3"
+                                else ".mp4"
+                                if check["metadata"]["kind"] == "video"
+                                else ".m4a"
+                            )
+                            (
+                                args.save_results / (str(len(checks)) + "-" + profile + suffix)
+                            ).write_bytes(response.content)
+                    checks.append(check)
         report = {
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "source": args.url,
+            "quality_selection": args.quality,
             "platform": task["result"].get("platform") if task["result"] else None,
             "publication_type": task["result"].get("kind") if task["result"] else None,
             "versions": client.get("/api/settings").json()["versions"],

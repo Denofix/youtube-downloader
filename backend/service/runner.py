@@ -33,10 +33,14 @@ def execute(task, store):
                     raise ServiceError(
                         "invalid_format", "Analyze again and select a current source format."
                     )
+                profile = payload["profile"]
+                # Also apply the current policy to tasks/analyses created by older UI versions.
+                if analysis.get("platform") == "TikTok" and profile != "mp3":
+                    profile = "compatible"
                 path = sources.download(
                     analysis,
                     choice,
-                    payload["profile"],
+                    profile,
                     payload["bitrate"],
                     directory,
                     config,
@@ -48,7 +52,7 @@ def execute(task, store):
                     raise ServiceError(
                         "invalid_result", "The result is missing its selected audio stream."
                     )
-                if payload["profile"] == "original" and any(
+                if profile != "mp3" and any(
                     choice.get(dimension) and metadata.get(dimension) != choice[dimension]
                     for dimension in ("width", "height")
                 ):
@@ -56,11 +60,18 @@ def execute(task, store):
                         "quality_mismatch",
                         "The result does not match the selected resolution. Analyze again.",
                     )
+                if profile == "compatible":
+                    report("converting")
+                    original = path
+                    path, metadata = media.compatible_video(original, metadata, directory)
+                    original.unlink()
+                    report("verifying")
+                quality = sources.quality_height(choice)
                 descriptor = (
                     f"MP3 {payload['bitrate']}kbps"
-                    if payload["profile"] == "mp3"
-                    else str(choice.get("height") or "audio")
-                    + ("p" if choice.get("height") else "")
+                    if profile == "mp3"
+                    else (str(quality) + "p" if quality else choice.get("kind", "media"))
+                    + (" H264" if profile == "compatible" else "")
                 )
                 name = media.safe_name(analysis["title"], path.suffix, descriptor)
             elif task["kind"] == "convert":
@@ -79,6 +90,10 @@ def execute(task, store):
                 "asset_id": store.add_asset(path, name, metadata, task_id),
                 "preview": metadata["kind"] in {"image", "animation"},
             }
+            if task["kind"] == "download":
+                result["source_format_ids"] = choice.get(
+                    "resolved_source_format_ids", choice["source_format_ids"]
+                )
         if not store.finish(task_id, "completed", result=result):
             store.discard_task_files(task_id)
     except ServiceError as error:

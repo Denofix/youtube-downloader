@@ -4,7 +4,7 @@ A self-hosted media workspace evolving from Nord_Fillin's YouTube Downloader. Vu
 
 Analyze an individual YouTube/TikTok video or public SoundCloud track, select actual source formats and queue an original download or MP3 extraction. Upload media, inspect contents, convert files and retrieve verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
 
-**Verification:** 116 backend/media/process cases pass locally, including real tool delivery against generated media. The [owner failure follow-up](docs/media-service/source-failure-followup.md) adds the missing browser transport and reports real MP4/MP3 downloads from the owner's TikTok link in the development environment. That link also worked there before the dependency change, so the precise failure on the owner's Windows network remains open. The supplied SoundCloud track is reported DRM-protected; a separate public unprotected track passes M4A/MP3 delivery. The earlier [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json), [stage-2 CI evidence](docs/media-service/stage-2.md) and failed live samples are retained separately. Only the recorded scenarios are confirmed.
+**Verification:** 129 backend/media/process cases pass locally, including real tool delivery against generated media. The [owner failure follow-up](docs/media-service/source-failure-followup.md) adds the missing browser transport and reports real MP4/MP3 downloads from the owner's TikTok link in the development environment. That link also worked there before the dependency change, so the precise failure on the owner's Windows network remains open. The supplied SoundCloud track is reported DRM-protected; a separate public unprotected track passes M4A/MP3 delivery. The earlier [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json), [stage-2 CI evidence](docs/media-service/stage-2.md) and failed live samples are retained separately. Only the recorded scenarios are confirmed.
 
 ## Start
 
@@ -37,6 +37,8 @@ Actual running interface, captured by the [browser integration run](https://gith
 </details>
 
 ## Current features
+
+TikTok video delivery now uses **compatible H.264/AAC MP4** at the selected dimensions and excludes reported watermarked sources. HEVC is converted when needed; see the [playback fix and verified scope](docs/media-service/tiktok-playback.md).
 
 - Download real source format IDs with resolution/FPS/codecs/audio/size details, track merging and explicit MP3 encoding. Missing formats require fresh analysis; no silent quality fallback.
 - Accept public SoundCloud track permalinks and TikTok video permalinks, plus bounded same-platform share redirects. SoundCloud previews are rejected; TikTok MP3 comes from the selected video, not a separate potentially different music track.

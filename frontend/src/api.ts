@@ -4,6 +4,7 @@ export type Choice = {
   container: string;
   height: number | null;
   width: number | null;
+  quality_height?: number | null;
   fps: number | null;
   audio_bitrate: number | null;
   format_note: string | null;

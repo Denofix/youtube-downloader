@@ -121,7 +121,11 @@ def probe(path: Path):
         "width": video.get("width") if video else None,
         "height": video.get("height") if video else None,
         "video_codec": video.get("codec_name") if video else None,
+        "pixel_format": video.get("pix_fmt") if video else None,
+        "video_profile": video.get("profile") if video else None,
         "audio_codec": audio.get("codec_name") if audio else None,
+        "audio_profile": audio.get("profile") if audio else None,
+        "audio_channels": audio.get("channels") if audio else None,
         "has_audio": audio is not None,
     }
 
@@ -238,6 +242,98 @@ def convert(source: Path, metadata, parameters, directory: Path):
     result = verify(target)
     if fmt in AUDIO and not result["has_audio"]:
         raise ServiceError("invalid_result", "The result has no audio stream.")
+    return target, result
+
+
+def compatible_video(source: Path, metadata, directory: Path):
+    """Deliver an MP4 that does not require an HEVC/10-bit decoder on the client."""
+    if metadata["kind"] != "video" or not metadata["has_audio"]:
+        raise ServiceError(
+            "no_audio", "A compatible video result requires both video and clip audio."
+        )
+    if not {"libx264", "aac"}.issubset(encoders()):
+        raise ServiceError(
+            "missing_encoder",
+            "Compatible MP4 delivery requires H.264 and AAC encoders. Check server diagnostics.",
+        )
+    target = directory / "compatible.mp4"
+    copy = (
+        metadata["video_codec"] == "h264"
+        and metadata.get("pixel_format") == "yuv420p"
+        and metadata.get("video_profile") in {"High", "Main", "Baseline", "Constrained Baseline"}
+        and metadata["audio_codec"] == "aac"
+        and metadata.get("audio_profile") == "LC"
+        and (metadata.get("audio_channels") or 99) <= 2
+    )
+    encoding = (
+        ["-c", "copy"]
+        if copy
+        else [
+            "-c:v",
+            "libx264",
+            "-preset",
+            "fast",
+            "-crf",
+            "18",
+            "-profile:v",
+            "high",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            "-profile:a",
+            "aac_low",
+            "-b:a",
+            "192k",
+            "-ac",
+            "2",
+        ]
+    )
+    run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-nostdin",
+            "-y",
+            "-protocol_whitelist",
+            "file,pipe",
+            "-threads",
+            "2",
+            "-noautorotate",
+            "-i",
+            str(source),
+            "-map",
+            "0:v:0",
+            "-map",
+            "0:a:0",
+            *encoding,
+            "-map_metadata",
+            "-1",
+            "-map_chapters",
+            "-1",
+            "-movflags",
+            "+faststart",
+            "-threads",
+            "2",
+            str(target),
+        ],
+        1700,
+    )
+    result = verify(target)
+    if (
+        result["kind"] != "video"
+        or not result["has_audio"]
+        or result["video_codec"] != "h264"
+        or result["audio_codec"] != "aac"
+        or result.get("pixel_format") != "yuv420p"
+        or any(result.get(key) != metadata.get(key) for key in ("width", "height"))
+    ):
+        raise ServiceError(
+            "invalid_result",
+            "The compatible result does not match the required video, audio or selected dimensions.",
+        )
     return target, result
 
 

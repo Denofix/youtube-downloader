@@ -187,20 +187,28 @@ def test_tiktok_never_substitutes_music_for_clip_audio():
                     "acodec": "aac",
                     "width": 720,
                     "height": 1280,
-                    "format_note": "watermarked",
+                    "format_note": None,
                 },
                 {"format_id": "silent", "ext": "mp4", "vcodec": "h265", "acodec": "none"},
                 {"format_id": "unplayable", "ext": "mp4", "vcodec": "bytevc2", "acodec": "aac"},
+                {
+                    "format_id": "download",
+                    "ext": "mp4",
+                    "vcodec": "h264",
+                    "acodec": "aac",
+                    "format_note": "watermarked",
+                },
                 audio_format("music"),
             ]
         },
         VIDEO,
     )
-    assert [c["selector"] for c in result["choices"]] == ["play", "silent"]
-    assert result["choices"][0]["format_note"] == "watermarked"
+    assert [c["selector"] for c in result["choices"]] == ["play", "silent+play"]
+    assert result["choices"][0]["format_note"] is None
     assert result["choices"][0]["width"] == 720
-    assert not result["choices"][1]["has_audio"]
-    assert result["choices"][1]["operation"] == "download"
+    assert result["choices"][1]["has_audio"]
+    assert result["choices"][1]["operation"] == "merge"
+    assert result["choices"][1]["audio_source_kind"] == "video"
 
 
 @pytest.mark.parametrize(

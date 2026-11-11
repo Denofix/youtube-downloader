@@ -64,8 +64,14 @@ function syncHash() {
   if (tabs.includes(next)) tab.value = next;
 }
 function choiceLabel(c: Choice) {
+  const quality =
+    c.quality_height ??
+    (c.width && c.height ? Math.min(c.width, c.height) : c.height);
   const details = [
-    c.kind === "video" ? (c.height ? c.height + "p" : "Video") : "Audio",
+    c.kind === "video" ? (quality ? quality + "p" : "Video") : "Audio",
+    c.kind === "video" && c.width && c.height
+      ? `${c.width} × ${c.height}`
+      : null,
     c.fps ? c.fps + " fps" : null,
     c.container.toUpperCase(),
     c.kind === "audio" && c.audio_bitrate ? c.audio_bitrate + " kbps" : null,
@@ -81,7 +87,28 @@ function useAnalysis(task: Task) {
     error.value = "This analysis has expired. Analyze again.";
     return;
   }
-  analysis.value = task.result as Analysis;
+  const incoming = task.result as Analysis;
+  analysis.value =
+    incoming.platform === "TikTok"
+      ? {
+          ...incoming,
+          choices: incoming.choices.filter(
+            (c) =>
+              c.has_audio &&
+              !c.format_note?.toLowerCase().includes("watermarked") &&
+              !c.source_format_ids.some((id) =>
+                /^download(?:_addr)?(?:-\d+)?$/.test(id),
+              ),
+          ),
+        }
+      : incoming;
+  if (!analysis.value.choices.length) {
+    analysis.value = null;
+    error.value =
+      "Analyze this TikTok link again to refresh compatible sources without a reported watermark.";
+    errorCode.value = "analysis_refresh_required";
+    return;
+  }
   analysisId.value = task.id;
   const ordered = [...analysis.value.choices].sort(
     (a, b) =>
@@ -90,7 +117,8 @@ function useAnalysis(task: Task) {
       (b.audio_bitrate || 0) - (a.audio_bitrate || 0),
   );
   choiceId.value = (ordered.find((c) => c.has_audio) || ordered[0])?.id || "";
-  profile.value = "original";
+  profile.value =
+    analysis.value.platform === "TikTok" ? "compatible" : "original";
 }
 async function loadAsset(id: string) {
   asset.value = await api<Asset>("/assets/" + id);
@@ -407,7 +435,15 @@ onUnmounted(() => {
               </select></label
             ><label
               >Output preset<select v-model="profile">
-                <option value="original">Original · no re-encoding</option>
+                <option
+                  v-if="analysis.platform === 'TikTok'"
+                  value="compatible"
+                >
+                  Compatible MP4 · H.264 + AAC
+                </option>
+                <option v-else value="original">
+                  Original · no re-encoding
+                </option>
                 <option value="mp3" :disabled="!choice?.has_audio">
                   Audio MP3 · re-encode
                 </option>
@@ -416,16 +452,24 @@ onUnmounted(() => {
           </div>
           <div v-if="choice" class="format-summary">
             <span
-              >{{ choice.size_kind === "approximate" ? "About " : ""
+              >{{ profile === "compatible" ? "Source: " : ""
+              }}{{ choice.size_kind === "approximate" ? "About " : ""
               }}{{ bytes(choice.size) }}</span
             ><span>{{
               profile === "mp3"
                 ? "Audio encoding required"
-                : choice.operation === "merge"
-                  ? "Separate tracks · lossless merge"
-                  : "Direct source download"
+                : profile === "compatible"
+                  ? "Output: MP4 · H.264 + AAC"
+                  : choice.operation === "merge"
+                    ? "Separate tracks · lossless merge"
+                    : "Direct source download"
             }}</span>
           </div>
+          <p v-if="analysis.platform === 'TikTok'" class="help">
+            Sources with a reported watermark are excluded. Video delivery keeps
+            the selected resolution; HEVC is re-encoded for compatible playback.
+            Output size may change.
+          </p>
           <details class="advanced">
             <summary>Advanced · source details & encoding</summary>
             <dl v-if="choice">

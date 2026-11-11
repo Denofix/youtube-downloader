@@ -18,7 +18,7 @@ from . import media
 from .config import Settings, settings
 from .diagnostics import runtime_status
 from .errors import ServiceError
-from .sources import THUMBNAIL_DOMAINS, platform_for, validate_url
+from .sources import THUMBNAIL_DOMAINS, platform_for, tiktok_watermarked, validate_url
 from .store import Store
 from .worker import disk_usage
 
@@ -36,7 +36,7 @@ class AnalyzeRequest(ControlledRequest):
 class DownloadRequest(ControlledRequest):
     analysis_id: ID
     choice_id: str = Field(pattern=r"^option_[0-9]{1,4}$")
-    profile: Literal["original", "mp3"] = "original"
+    profile: Literal["original", "compatible", "mp3"] = "original"
     bitrate: Literal[128, 192, 320] = 192
 
 
@@ -212,9 +212,27 @@ def create_app(config: Settings = settings):
         choice = next((c for c in source["result"]["choices"] if c["id"] == body.choice_id), None)
         if choice is None:
             raise ServiceError("invalid_format", "This format does not belong to that analysis.")
-        if body.profile == "mp3" and not choice["has_audio"]:
+        profile = body.profile
+        if source["result"].get("platform") == "TikTok":
+            if tiktok_watermarked(choice) or not choice["has_audio"]:
+                raise ServiceError(
+                    "tiktok_source_unavailable",
+                    "Analyze again to choose a source without a reported watermark and with clip audio.",
+                )
+            if profile == "original":
+                profile = "compatible"
+        if profile in {"mp3", "compatible"} and not choice["has_audio"]:
             raise ServiceError("no_audio", "Choose a format with an audio stream.")
-        if (body.profile == "mp3" or choice["operation"] == "merge") and not shutil.which("ffmpeg"):
+        if profile == "compatible" and (
+            choice.get("kind") != "video" or not {"libx264", "aac"}.issubset(media.encoders())
+        ):
+            raise ServiceError(
+                "incompatible_conversion",
+                "Compatible MP4 delivery requires a video source and H.264/AAC encoders.",
+            )
+        if (
+            profile in {"mp3", "compatible"} or choice["operation"] == "merge"
+        ) and not shutil.which("ffmpeg"):
             raise ServiceError("missing_ffmpeg", "FFmpeg is required. Check server diagnostics.")
         return public_task(
             store.create(
@@ -223,7 +241,7 @@ def create_app(config: Settings = settings):
                 {
                     "analysis": source["result"],
                     "choice_id": body.choice_id,
-                    "profile": body.profile,
+                    "profile": profile,
                     "bitrate": body.bitrate,
                 },
             )
