@@ -747,6 +747,27 @@ onUnmounted(() => {
                 {{ date(task.created_at) }} <span class="dot">·</span>
                 {{ task.operation }}
               </p>
+              <p
+                v-if="
+                  task.result?.timings &&
+                  ['download', 'convert'].includes(task.kind)
+                "
+                class="expiry"
+              >
+                Processed in {{ duration(task.result.timings.total_seconds) }}
+                <template v-if="task.result.timings.stages.downloading"
+                  >· Download
+                  {{
+                    duration(task.result.timings.stages.downloading)
+                  }}</template
+                >
+                <template v-if="task.result.timings.stages.converting"
+                  >· Convert & check
+                  {{
+                    duration(task.result.timings.stages.converting)
+                  }}</template
+                >
+              </p>
               <div
                 v-if="task.state === 'running' && task.progress !== null"
                 class="progress-wrap"

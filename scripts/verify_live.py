@@ -48,7 +48,12 @@ def main():
 
         task = wait(post("/analyze", {"url": args.url}))
         checks.append(
-            {"scenario": "metadata analysis", "state": task["state"], "error": task["error"]}
+            {
+                "scenario": "metadata analysis",
+                "state": task["state"],
+                "error": task["error"],
+                "timings": (task["result"] or {}).get("timings"),
+            }
         )
         if task["state"] == "completed":
             choices = [
@@ -106,6 +111,7 @@ def main():
                         "error": result["error"],
                     }
                     if result["state"] == "completed":
+                        check["timings"] = result["result"].get("timings")
                         check["resolved_source_format_ids"] = result["result"].get(
                             "source_format_ids"
                         )

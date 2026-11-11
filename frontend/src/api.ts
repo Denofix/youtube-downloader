@@ -37,7 +37,13 @@ export type Task = {
   created_at: number;
   expires_at: number | null;
   expired: boolean;
-  result: (Partial<Analysis> & { asset_id?: string; preview?: boolean }) | null;
+  result:
+    | (Partial<Analysis> & {
+        asset_id?: string;
+        preview?: boolean;
+        timings?: { total_seconds: number; stages: Record<string, number> };
+      })
+    | null;
   error: { code: string; message: string } | null;
 };
 export type Asset = {

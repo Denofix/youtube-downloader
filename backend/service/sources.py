@@ -466,6 +466,13 @@ def download(analysis, choice, profile, bitrate, directory: Path, config, report
             choice["resolved_source_format_ids"].extend(
                 part_choice.get("resolved_source_format_ids", [format_id])
             )
+            # A refreshed HEVC URL may already include this clip's audio. Inspect
+            # the actual file before making another extraction/download request.
+            if index == 0 and media.probe(parts[0])["has_audio"]:
+                target = directory / ("source" + parts[0].suffix)
+                parts[0].replace(target)
+                shutil.rmtree(part_directory)
+                return target
         report("merging")
         target = directory / "source.mkv"
         media.run(

@@ -1,5 +1,6 @@
 import resource
 import sys
+import time
 
 from . import media, sources
 from .errors import ServiceError
@@ -10,8 +11,15 @@ def execute(task, store):
     task_id, payload, config = task["id"], task["payload"], store.config
     directory = config.data_dir / "files" / task_id
     directory.mkdir(exist_ok=True)
+    started = phase_started = time.monotonic()
+    phase, stages = "starting", {}
 
     def report(operation, progress=None, speed=None, eta=None):
+        nonlocal phase, phase_started
+        if operation != phase:
+            now = time.monotonic()
+            stages[phase] = stages.get(phase, 0) + now - phase_started
+            phase, phase_started = operation, now
         store.progress(task_id, operation, progress, speed, eta)
 
     try:
@@ -47,7 +55,9 @@ def execute(task, store):
                     report,
                 )
                 report("verifying")
-                metadata = media.verify(path)
+                # Compatible delivery decodes while encoding with -xerror, then
+                # fully verifies the final MP4. Avoid an extra full input decode.
+                metadata = media.probe(path) if profile == "compatible" else media.verify(path)
                 if choice["has_audio"] and not metadata["has_audio"]:
                     raise ServiceError(
                         "invalid_result", "The result is missing its selected audio stream."
@@ -94,6 +104,12 @@ def execute(task, store):
                 result["source_format_ids"] = choice.get(
                     "resolved_source_format_ids", choice["source_format_ids"]
                 )
+        now = time.monotonic()
+        stages[phase] = stages.get(phase, 0) + now - phase_started
+        result["timings"] = {
+            "total_seconds": round(now - started, 3),
+            "stages": {name: round(seconds, 3) for name, seconds in stages.items()},
+        }
         if not store.finish(task_id, "completed", result=result):
             store.discard_task_files(task_id)
     except ServiceError as error:

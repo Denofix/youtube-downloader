@@ -4,7 +4,7 @@ A self-hosted media workspace evolving from Nord_Fillin's YouTube Downloader. Vu
 
 Analyze an individual YouTube/TikTok video or public SoundCloud track, select actual source formats and queue an original download or MP3 extraction. Upload media, inspect contents, convert files and retrieve verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
 
-**Verification:** 129 backend/media/process cases pass locally. [Compatible TikTok playback verification](docs/media-service/tiktok-playback.md) passed all four offered source renditions for the supplied post, including 1080 × 1920 H.265 → H.264/AAC MP4, plus MP3 and full decoding/HTTP retrieval. Updated Windows Media Player playback still needs owner confirmation. An unprotected SoundCloud control track passes M4A/MP3 delivery; the supplied remix returns DRM protection. The [source failure follow-up](docs/media-service/source-failure-followup.md), [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json) and earlier [CI evidence](docs/media-service/stage-2.md) are retained separately. Only recorded scenarios are confirmed.
+**Verification:** 131 backend/media/process cases pass locally. [Compatible TikTok playback verification](docs/media-service/tiktok-playback.md) passed all four offered source renditions for the supplied post, including 1080 × 1920 H.265 → H.264/AAC MP4, plus MP3 and full decoding/HTTP retrieval. The owner confirmed compatible TikTok playback in Windows Media Player and a public SoundCloud M4A download/playback on 11 November 2026. An unprotected SoundCloud control track passes M4A/MP3 delivery; the supplied remix returns DRM protection. The [source failure follow-up](docs/media-service/source-failure-followup.md), [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json) and earlier [CI evidence](docs/media-service/stage-2.md) are retained separately. Only recorded scenarios are confirmed.
 
 ## Start
 
@@ -38,7 +38,7 @@ Actual running interface, captured by the [browser integration run](https://gith
 
 ## Current features
 
-TikTok video delivery now uses **compatible H.264/AAC MP4** at the selected dimensions and excludes reported watermarked sources. HEVC is converted when needed; see the [playback fix and verified scope](docs/media-service/tiktok-playback.md).
+TikTok video delivery now uses **compatible H.264/AAC MP4** at the selected dimensions and excludes reported watermarked sources. HEVC is converted when needed; see the [playback fix and verified scope](docs/media-service/tiktok-playback.md). [Speed follow-up](docs/media-service/tiktok-speed.md) removes redundant source requests/input decoding, uses the `veryfast` CRF 18 preset and displays task-stage timings.
 
 - Download real source format IDs with resolution/FPS/codecs/audio/size details, track merging and explicit MP3 encoding. Missing formats require fresh analysis; no silent quality fallback.
 - Accept public SoundCloud track permalinks and TikTok video permalinks, plus bounded same-platform share redirects. SoundCloud previews are rejected; TikTok MP3 comes from the selected video, not a separate potentially different music track.
@@ -47,7 +47,7 @@ TikTok video delivery now uses **compatible H.264/AAC MP4** at the selected dime
 - Default limits: one processing job, 512 MiB per file, 5 GiB media storage, 30 minutes per task, 24-hour results. Configure owner values in `.env`.
 - Graphite/orange Download, Convert, Tasks and Settings pages, keyboard focus/labels, mobile layout and worker diagnostics.
 
-Instagram, Pinterest, photo/carousel selection, ZIP delivery and batch upload UI are planned. The owner-instance TikTok recheck is pending. The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
+Instagram, Pinterest, photo/carousel selection, ZIP delivery and batch upload UI are planned. The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
 
 ## Architecture
 

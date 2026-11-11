@@ -1,4 +1,5 @@
 import array
+import json
 import subprocess
 
 import pytest
@@ -43,6 +44,28 @@ def hevc_source(files, media_server, monkeypatch):
         check=True,
         capture_output=True,
     )
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-nostdin",
+            "-y",
+            "-i",
+            str(source),
+            "-i",
+            str(files / "sample.mp4"),
+            "-map",
+            "0:v:0",
+            "-map",
+            "1:a:0",
+            "-c",
+            "copy",
+            str(files / "portrait-muxed.mp4"),
+        ],
+        check=True,
+        capture_output=True,
+    )
     original = yt_dlp.YoutubeDL
 
     class OwnedTikTokIE(InfoExtractor):
@@ -52,8 +75,11 @@ def hevc_source(files, media_server, monkeypatch):
         change_quality = False
         format_name = "hevc"
         reported_audio = False
+        embedded_audio = False
+        extraction_count = 0
 
         def _real_extract(self, url):
+            type(self).extraction_count += 1
             return {
                 "id": "7100000000000000001",
                 "title": "Owned portrait clip",
@@ -62,7 +88,8 @@ def hevc_source(files, media_server, monkeypatch):
                     {
                         "format_id": "hevc-1" if self.renumber_mirror else self.format_name,
                         "ext": "mp4",
-                        "url": media_server + "/portrait-hevc.mp4",
+                        "url": media_server
+                        + ("/portrait-muxed.mp4" if self.embedded_audio else "/portrait-hevc.mp4"),
                         "width": 84 if self.change_quality else 96,
                         "height": 160,
                         "vcodec": "h265",
@@ -120,6 +147,9 @@ def test_highest_hevc_keeps_picture_dimensions_and_clip_audio(client, store, hev
     assert response.status_code == 202
     task = work(store)
     assert task["state"] == "completed", task
+    timings = task["result"]["timings"]
+    assert timings["total_seconds"] > 0
+    assert timings["stages"]["downloading"] > 0
     asset = store.asset(task["result"]["asset_id"])
     result = asset["metadata"]
     assert result["has_audio"]
@@ -170,6 +200,65 @@ def test_highest_hevc_keeps_picture_dimensions_and_clip_audio(client, store, hev
     values = array.array("h", pcm)
     assert max(values) > 500
     assert client.get(f"/api/assets/{asset['id']}/file").status_code == 200
+
+
+def test_actual_embedded_audio_avoids_a_second_source_request(client, store, hevc_source):
+    hevc_source.embedded_audio = True
+    # Extractor metadata still says video-only; the actual streams decide whether
+    # fetching the same post again for another clip-audio rendition is necessary.
+    client.post("/api/analyze", json={"url": URL})
+    analysis = work(store)
+    assert hevc_source.extraction_count == 1
+    choice = next(c for c in analysis["result"]["choices"] if c["source_format_ids"][0] == "hevc")
+    assert choice["source_format_ids"] == ["hevc", "play"]
+    client.post("/api/downloads", json={"analysis_id": analysis["id"], "choice_id": choice["id"]})
+    task = work(store)
+    assert task["state"] == "completed", task
+    assert hevc_source.extraction_count == 2
+    assert task["result"]["source_format_ids"] == ["hevc"]
+    asset = store.asset(task["result"]["asset_id"])
+    assert asset["metadata"]["video_codec"] == "h264" and asset["metadata"]["has_audio"]
+    assert (asset["metadata"]["width"], asset["metadata"]["height"]) == (96, 160)
+    assert not (asset["path"].parent / "video").exists()
+    assert not (asset["path"].parent / "clip-audio").exists()
+
+
+def test_corrupted_hevc_input_is_not_delivered(client, store, hevc_source, files):
+    hevc_source.embedded_audio = True
+    source = files / "portrait-muxed.mp4"
+    packets = json.loads(
+        subprocess.check_output(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "packet=pos",
+                "-of",
+                "json",
+                str(source),
+            ]
+        )
+    )["packets"]
+    data = bytearray(source.read_bytes())
+    offset = int(packets[1]["pos"])
+    # Invalid video NAL length; MP4 headers remain readable.
+    data[offset : offset + 4] = b"\xff" * 4
+    source.write_bytes(data)
+    assert media.probe(source)["has_audio"]
+    with pytest.raises(ServiceError):
+        media.verify(source)
+    client.post("/api/analyze", json={"url": URL})
+    analysis = work(store)
+    choice = next(c for c in analysis["result"]["choices"] if c["source_format_ids"][0] == "hevc")
+    client.post("/api/downloads", json={"analysis_id": analysis["id"], "choice_id": choice["id"]})
+    task = work(store)
+    assert task["state"] == "failed", task
+    assert task["result"] is None
+    assert task["error"]["code"] == "media_tool_error"
+    assert not list((store.config.data_dir / "files" / task["id"]).rglob("*.mp4"))
 
 
 def test_watermark_change_is_never_delivered(client, store, hevc_source):

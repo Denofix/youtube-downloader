@@ -233,6 +233,7 @@ def main():
         page.screenshot(path=str(args.screenshots / "convert-desktop.png"), full_page=True)
         page.get_by_role("button", name="Add conversion to queue").click()
         expect(page.get_by_role("link", name="Download result")).to_be_visible(timeout=30000)
+        expect(page.get_by_text("Processed in", exact=False)).to_be_visible()
         with page.expect_download() as download:
             page.get_by_role("link", name="Download result").click()
         output = directory / "result.mp3"

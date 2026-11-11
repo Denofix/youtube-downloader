@@ -158,7 +158,7 @@ def create_app(config: Settings = settings):
                 },
                 {
                     "name": "TikTok",
-                    "status": "individual videos; live sample verified; owner-instance recheck pending",
+                    "status": "individual videos; live sample and owner Windows playback verified",
                 },
                 *[{"name": p, "status": "planned"} for p in ("Instagram", "Pinterest")],
             ],
