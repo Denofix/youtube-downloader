@@ -1,0 +1,4 @@
+customtkinter==5.2.2
+pillow==12.2.0
+requests==2.34.2
+yt-dlp[default]==2026.10.26
