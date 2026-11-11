@@ -72,6 +72,7 @@ jobs:
           curl --fail http://127.0.0.1:8080/api/health
           curl --fail http://127.0.0.1:8080/
           docker compose exec -T worker node --version
+          docker compose exec -T worker python -m service.diagnostics --runtime-only
       - name: Container logs
         if: failure()
         run: docker compose logs --tail=100

@@ -1,6 +1,6 @@
 # Stage 2 — SoundCloud tracks and TikTok videos
 
-Branch: `feat/soundcloud-tiktok`, based on the owner-verified `feat/media-platform` commit b1cbfa6200f1036da2b8629a7c8b9785f71a1265. This is a separate change on top of PR #2; no merge of that PR is assumed. No data migration or dependency update is required.
+Branch: `feat/soundcloud-tiktok`, based on the owner-verified `feat/media-platform` commit b1cbfa6200f1036da2b8629a7c8b9785f71a1265. This is a separate change on top of PR #2; no merge of that PR is assumed. No data migration is required. A later [owner failure follow-up](source-failure-followup.md) adds the missing curl-cffi browser transport, specific source error reasons and new live reports; the initial evidence below records the earlier revision.
 
 ## Implemented behavior
 

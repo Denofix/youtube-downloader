@@ -7,6 +7,11 @@ class ServiceError(Exception):
 def extractor_error(error: Exception) -> ServiceError:
     # Classify privately: never publish stderr, cookie paths or signed media URLs.
     text = str(error).lower()
+    if "drm protected" in text or "drm-protected" in text:
+        return ServiceError(
+            "drm_protected",
+            "The source offers this item only in DRM-protected formats. Choose a track or video with an available unprotected download, or use the creator's official download.",
+        )
     if "invalid data found" in text:
         return ServiceError(
             "invalid_source_media",
@@ -21,6 +26,38 @@ def extractor_error(error: Exception) -> ServiceError:
         return ServiceError(
             "network_blocked",
             "The source blocked access from this server's network. Check source availability from the server or try another public item.",
+        )
+    if "unable to extract client id" in text:
+        return ServiceError(
+            "soundcloud_client_id",
+            "SoundCloud's public API credentials could not be retrieved. Retry after checking the server's SoundCloud access and runtime versions.",
+        )
+    if any(word in text for word in ("http error 429", "too many requests", "rate limit")):
+        return ServiceError(
+            "source_rate_limited",
+            "The source is limiting requests. Wait before trying this item again.",
+        )
+    if any(
+        word in text
+        for word in ("not available in your country", "geo restricted", "geographic restriction")
+    ):
+        return ServiceError(
+            "source_region",
+            "This item is not available in the server's region. Choose another available item.",
+        )
+    if any(
+        word in text
+        for word in (
+            "unexpected response from webpage",
+            "unable to extract challenge",
+            "unable to solve js challenge",
+            "universal data for rehydration",
+            "unable to extract webpage video data",
+        )
+    ):
+        return ServiceError(
+            "source_page_unreadable",
+            "The source returned a page its extractor could not read. Retry; if it persists, check browser transport support in Settings and source access from the server.",
         )
     if any(word in text for word in ("sign in", "login", "cookies", "private", "age-restricted")):
         return ServiceError(

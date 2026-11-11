@@ -59,6 +59,7 @@ export type Asset = {
 };
 export type ServerSettings = {
   versions: Record<string, string>;
+  source_transport: { browser_impersonation: boolean };
   worker_online: boolean;
   ttl_seconds: number;
   job_timeout_seconds: number;

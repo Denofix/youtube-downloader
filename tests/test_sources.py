@@ -330,7 +330,7 @@ def test_new_source_exact_format_and_dimensions(client, store, new_source_extrac
 def test_source_settings_and_csp(client):
     response = client.get("/api/settings")
     platforms = {p["name"]: p["status"] for p in response.json()["platforms"]}
-    assert "public tracks" in platforms["SoundCloud"]
+    assert "public unprotected tracks" in platforms["SoundCloud"]
     assert "individual videos" in platforms["TikTok"]
     assert platforms["Instagram"] == "planned"
     csp = response.headers["Content-Security-Policy"]

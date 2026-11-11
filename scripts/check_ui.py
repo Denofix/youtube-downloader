@@ -106,6 +106,35 @@ def check_source_forms(page, screenshots):
         page.reload(wait_until="networkidle")
 
 
+def check_source_failure(page):
+    """The download error must retain its specific reason without opening task history."""
+    task = {
+        "id": "d" * 32,
+        "kind": "analyze",
+        "title": "Protected source UI fixture",
+        "state": "failed",
+        "operation": "analyzing",
+        "expired": False,
+        "result": None,
+        "error": {
+            "code": "drm_protected",
+            "message": "The source offers this item only in DRM-protected formats.",
+        },
+    }
+    page.route("**/api/analyze", lambda route: route.fulfill(status=202, json=task))
+    page.route("**/api/tasks", lambda route: route.fulfill(json=[task]))
+    try:
+        page.get_by_label("Media URL").fill("https://soundcloud.com/test-artist/protected-track")
+        page.get_by_role("button", name="Analyze link").click()
+        expect(page.get_by_role("alert")).to_contain_text("DRM-protected")
+        expect(page.get_by_role("alert")).to_contain_text("Error code: drm_protected")
+        page.get_by_role("button", name="Dismiss error").click()
+    finally:
+        page.unroute("**/api/analyze")
+        page.unroute("**/api/tasks")
+        page.reload(wait_until="networkidle")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--chromium", help="Optional system Chromium executable")
@@ -168,6 +197,7 @@ def main():
         expect(page.get_by_role("alert")).to_contain_text("SoundCloud track")
         page.get_by_role("button", name="Dismiss error").click()
         check_source_forms(page, args.screenshots)
+        check_source_failure(page)
         navigation.get_by_role("button", name="convert", exact=True).click()
         page.get_by_label("Choose media file").set_input_files(source)
         expect(page.get_by_label("What would you like to do?")).to_be_visible(timeout=20000)
@@ -213,6 +243,8 @@ def main():
         page.screenshot(path=str(args.screenshots / "tasks-mobile.png"), full_page=True)
         navigation.get_by_role("button", name="settings", exact=True).click()
         expect(page.get_by_role("heading", name="Runtime diagnostics")).to_be_visible()
+        expect(page.get_by_text("Browser transport support", exact=True)).to_be_visible()
+        expect(page.get_by_text("curl-cffi", exact=True)).to_be_visible()
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
         assert not errors, errors
         browser.close()

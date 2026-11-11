@@ -16,6 +16,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import media
 from .config import Settings, settings
+from .diagnostics import runtime_status
 from .errors import ServiceError
 from .sources import THUMBNAIL_DOMAINS, platform_for, validate_url
 from .store import Store
@@ -70,7 +71,7 @@ def public_asset(asset):
 @lru_cache(maxsize=1)
 def tool_versions():
     versions = {}
-    for name in ("yt-dlp", "yt-dlp-ejs", "pillow"):
+    for name in ("yt-dlp", "yt-dlp-ejs", "curl-cffi", "pillow"):
         try:
             versions[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
@@ -140,6 +141,7 @@ def create_app(config: Settings = settings):
     def server_settings():
         return {
             "versions": tool_versions(),
+            "source_transport": runtime_status(),
             "worker_online": store.worker_online(),
             "max_file_bytes": config.max_file_bytes,
             "max_storage_bytes": config.max_storage_bytes,
@@ -150,8 +152,14 @@ def create_app(config: Settings = settings):
             "cookies_configured": bool(config.cookie_file),
             "platforms": [
                 {"name": "YouTube", "status": "implemented; see live verification report"},
-                {"name": "SoundCloud", "status": "public tracks; see live verification report"},
-                {"name": "TikTok", "status": "individual videos; live verification pending"},
+                {
+                    "name": "SoundCloud",
+                    "status": "public unprotected tracks; see live verification report",
+                },
+                {
+                    "name": "TikTok",
+                    "status": "individual videos; live sample verified; owner-instance recheck pending",
+                },
                 *[{"name": p, "status": "planned"} for p in ("Instagram", "Pinterest")],
             ],
             "presets": [

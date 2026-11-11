@@ -4,7 +4,7 @@ A self-hosted media workspace evolving from Nord_Fillin's YouTube Downloader. Vu
 
 Analyze an individual YouTube/TikTok video or public SoundCloud track, select actual source formats and queue an original download or MP3 extraction. Upload media, inspect contents, convert files and retrieve verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
 
-**Verification:** 103 backend/media/process cases passed locally and in [GitHub Actions](https://github.com/Denofix/youtube-downloader/actions/runs/43009512299), including the new source contracts and real tool delivery against generated local media. A [live SoundCloud test](docs/media-service/live-soundcloud-2026-11-11.json) passed original M4A and MP3 delivery. TikTok's adapter is implemented, but its live test returned `network_blocked` from this server's IP; it still needs live confirmation on the owner's instance. See [stage 2 evidence and update steps](docs/media-service/stage-2.md). The owner's successful [YouTube MP4/playback and MP3 verification](docs/media-service/owner-verification-2026-11-11.json) and earlier [CI/browser/Compose evidence](docs/media-service/verification.md) are retained separately. Live confirmation covers the tested scenarios.
+**Verification:** 116 backend/media/process cases pass locally, including real tool delivery against generated media. The [owner failure follow-up](docs/media-service/source-failure-followup.md) adds the missing browser transport and reports real MP4/MP3 downloads from the owner's TikTok link in the development environment. That link also worked there before the dependency change, so the precise failure on the owner's Windows network remains open. The supplied SoundCloud track is reported DRM-protected; a separate public unprotected track passes M4A/MP3 delivery. The earlier [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json), [stage-2 CI evidence](docs/media-service/stage-2.md) and failed live samples are retained separately. Only the recorded scenarios are confirmed.
 
 ## Start
 
@@ -45,7 +45,7 @@ Actual running interface, captured by the [browser integration run](https://gith
 - Default limits: one processing job, 512 MiB per file, 5 GiB media storage, 30 minutes per task, 24-hour results. Configure owner values in `.env`.
 - Graphite/orange Download, Convert, Tasks and Settings pages, keyboard focus/labels, mobile layout and worker diagnostics.
 
-Instagram, Pinterest, photo/carousel selection, ZIP delivery and batch upload UI are planned. TikTok live verification is pending. The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
+Instagram, Pinterest, photo/carousel selection, ZIP delivery and batch upload UI are planned. The owner-instance TikTok recheck is pending. The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
 
 ## Architecture
 

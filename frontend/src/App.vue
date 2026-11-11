@@ -25,6 +25,7 @@ const tasks = ref<Task[]>([]),
   server = ref<ServerSettings | null>(null);
 const url = ref(""),
   error = ref(""),
+  errorCode = ref(""),
   feedback = ref(""),
   busy = ref(false),
   connected = ref(false),
@@ -55,6 +56,7 @@ function navigate(target: Tab) {
   tab.value = target;
   location.hash = target;
   error.value = "";
+  errorCode.value = "";
   feedback.value = "";
 }
 function syncHash() {
@@ -125,7 +127,10 @@ async function refresh() {
           }
         }
       }
-      if (task.error) error.value = task.error.message;
+      if (task.error) {
+        error.value = task.error.message;
+        errorCode.value = task.error.code;
+      }
     }
   } catch {
     connected.value = false;
@@ -136,6 +141,7 @@ async function refresh() {
 async function action(work: () => Promise<void>) {
   busy.value = true;
   error.value = "";
+  errorCode.value = "";
   feedback.value = "";
   try {
     await work();
@@ -290,7 +296,11 @@ onUnmounted(() => {
   </header>
   <main id="main" tabindex="-1">
     <div v-if="error" class="notice error" role="alert">
-      <span><strong>Unable to continue</strong>{{ error }}</span
+      <span
+        ><strong>Unable to continue</strong>{{ error
+        }}<br v-if="errorCode" /><small v-if="errorCode"
+          >Error code: {{ errorCode }}</small
+        ></span
       ><button
         class="icon-button"
         aria-label="Dismiss error"
@@ -839,6 +849,16 @@ onUnmounted(() => {
         <section class="workspace settings-panel">
           <h2>Runtime diagnostics</h2>
           <dl class="settings-list versions">
+            <div>
+              <dt>Browser transport support</dt>
+              <dd>
+                {{
+                  server.source_transport.browser_impersonation
+                    ? "Available"
+                    : "Missing · rebuild the worker image"
+                }}
+              </dd>
+            </div>
             <div v-for="(version, name) in server.versions" :key="name">
               <dt>{{ name }}</dt>
               <dd>{{ version }}</dd>

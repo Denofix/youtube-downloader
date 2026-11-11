@@ -3,7 +3,7 @@ name = "download-and-convert"
 version = "0.1.0"
 requires-python = ">=3.12"
 description = "Self-hosted media downloads and conversion with a persistent queue"
-dependencies = ["fastapi>=0.115", "uvicorn>=0.30", "pydantic>=2.9", "yt-dlp[default]>=2026.6.9", "pillow>=12.2"]
+dependencies = ["fastapi>=0.115", "uvicorn>=0.30", "pydantic>=2.9", "yt-dlp[default,curl-cffi]>=2026.10.26", "pillow>=12.2"]
 
 [dependency-groups]
 dev = ["pytest>=8", "httpx>=0.28", "ruff>=0.12"]
