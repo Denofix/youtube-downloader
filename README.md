@@ -4,7 +4,7 @@ A self-hosted media workspace evolving from Nord_Fillin's YouTube Downloader. Vu
 
 This first slice analyzes an individual YouTube video, binds the choice to actual source formats and queues downloads/MP3 extraction. It also uploads media, inspects contents, converts files and delivers verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
 
-**Verification:** 45 restored backend/media/process tests pass; frontend typecheck, build and formatting pass. Live source access and browser/container checks are separate gates, tracked in the [support matrix](docs/media-service/support-matrix.md), CI and the draft PR. This is a development slice; do not equate metadata success with a verified external download.
+**Verification:** 45 restored backend/media/process tests pass; frontend typecheck, build and formatting pass. GitHub Actions also passed the real desktop/mobile browser scenarios and Docker Compose build/start checks. [Verification evidence](docs/media-service/verification.md) records the checked revisions. Real YouTube metadata analysis passed, but file retrieval returned invalid media in this environment; see the [live report](docs/media-service/live-youtube-2026-11-11.json). The first live download remains a separate acceptance gate.
 
 ## Start
 

@@ -240,7 +240,7 @@ h3 {
   display: flex;
   flex: 1;
   align-items: center;
-  border: 1px solid #394454;
+  border: 1px solid #607089;
   border-radius: 8px;
   background: var(--bg);
   padding: 0 14px;
@@ -255,7 +255,7 @@ select {
   width: 100%;
   color: var(--text);
   background: var(--bg);
-  border: 1px solid #394454;
+  border: 1px solid #607089;
   border-radius: 7px;
   padding: 12px;
   line-height: 1.4;
@@ -296,7 +296,7 @@ input::placeholder {
 .secondary {
   color: var(--text);
   background: var(--surface2);
-  border: 1px solid #394454;
+  border: 1px solid #607089;
 }
 .secondary:hover {
   background: #283241;

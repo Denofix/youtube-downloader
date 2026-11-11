@@ -4,7 +4,7 @@ This is the first web-service slice, not completion of the full specification. S
 
 | Source | Implemented in this build | Controlled verification | Live status |
 | --- | --- | --- | --- |
-| YouTube individual video / Shorts / finished-live permalink | Metadata, exact-format video/audio, lossless track merging and MP3 extraction | Real yt-dlp against a generated local HTTP media source; exact quality, merge/audio and missing-format rejection pass | See dated live report; metadata alone is not proof of downloadable media |
+| YouTube individual video / Shorts / finished-live permalink | Metadata, exact-format video/audio, lossless track merging and MP3 extraction | Real yt-dlp against a generated local HTTP media source; exact quality, merge/audio and missing-format rejection pass | Real metadata passed; original/MP3 retrieval failed with invalid_source_media in this environment; see live-youtube-2026-11-11.json |
 | TikTok | Planned | None | Not tested |
 | SoundCloud | Planned | None | Not tested |
 | Instagram | Planned | None | Not tested |
@@ -25,4 +25,4 @@ Other target platforms return `platform_planned`. Ongoing streams and collection
 
 Presets expose actual behavior: Original uses exact source streams; Audio MP3 has an explicit bitrate; Smaller Video encodes H.264 CRF 25 or VP9 CRF 34 with no guaranteed size reduction; GIF Clip has a maximum 15 seconds, 24 FPS and 720-pixel width. Increasing bitrate or resolution does not restore detail.
 
-The restored backend test suite passed locally with **45 tests**. Browser/Compose status is recorded in the PR and CI, separately from backend tests. No UI screenshots or live-platform successes should be invented to fill a missing gate.
+The restored backend test suite passed locally with **45 tests**. GitHub Actions also passed desktop/mobile browser scenarios, real MP3 retrieval/GIF/WebP conversion, and Docker Compose build/start. Actual screenshots are captured as artifacts. These controlled checks do not establish real YouTube file access; see verification.md and the dated live report.
