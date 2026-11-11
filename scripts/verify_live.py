@@ -13,7 +13,9 @@ from local_instance import running_instance
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("url", help="One public YouTube/TikTok video or SoundCloud track permalink")
+    parser.add_argument(
+        "url", help="One public YouTube/TikTok/Instagram video or SoundCloud track permalink"
+    )
     parser.add_argument("--base", default="http://127.0.0.1:8080")
     parser.add_argument(
         "--ephemeral", action="store_true", help="Use a disposable local API/worker"
@@ -56,11 +58,7 @@ def main():
             }
         )
         if task["state"] == "completed":
-            choices = [
-                c
-                for c in task["result"]["choices"]
-                if c["kind"] == task["result"]["kind"] and c["has_audio"]
-            ]
+            choices = [c for c in task["result"]["choices"] if c["kind"] == task["result"]["kind"]]
             ordered = sorted(
                 choices,
                 key=lambda c: (
@@ -79,17 +77,22 @@ def main():
             if not selected:
                 checks.append(
                     {
-                        "scenario": "select a source with audio",
+                        "scenario": "select a supported source",
                         "state": "failed",
                         "error": {
-                            "code": "no_audio",
-                            "message": "No compatible source with audio was returned.",
+                            "code": "no_formats",
+                            "message": "No supported source was returned.",
                         },
                     }
                 )
             video_profile = "compatible" if task["result"]["platform"] == "TikTok" else "original"
             for index, choice in enumerate(selected):
-                for profile in (video_profile, "mp3") if index == 0 else (video_profile,):
+                profiles = (
+                    (video_profile, "mp3")
+                    if index == 0 and choice["has_audio"]
+                    else (video_profile,)
+                )
+                for profile in profiles:
                     result = wait(
                         post(
                             "/downloads",
@@ -108,6 +111,7 @@ def main():
                         "selected_height": choice["height"],
                         "selected_width": choice["width"],
                         "selected_kind": choice["kind"],
+                        "selected_has_audio": choice["has_audio"],
                         "error": result["error"],
                     }
                     if result["state"] == "completed":

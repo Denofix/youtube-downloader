@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-11-11T20:31:21.501846+00:00",
+  "source": "https://www.instagram.com/p/aye83DjauH/",
+  "quality_selection": "highest",
+  "platform": "Instagram",
+  "publication_type": "video",
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "completed",
+      "error": null,
+      "timings": {
+        "total_seconds": 15.866,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 15.866
+        }
+      }
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "dash-273381622250014v"
+      ],
+      "selected_height": 640,
+      "selected_width": 640,
+      "selected_kind": "video",
+      "selected_has_audio": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 19.986,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 18.517,
+          "downloading": 0.738,
+          "preparing": 0.106,
+          "verifying": 0.626
+        }
+      },
+      "resolved_source_format_ids": [
+        "dash-273381622250014v"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 8.742075,
+        "width": 640,
+        "height": 640,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "Constrained Baseline",
+        "audio_codec": null,
+        "audio_profile": null,
+        "audio_channels": null,
+        "has_audio": false
+      },
+      "download_http_status": 200,
+      "download_bytes": 1017829
+    }
+  ]
+}

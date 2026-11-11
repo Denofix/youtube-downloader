@@ -230,7 +230,7 @@ def test_soundcloud_artwork_is_platform_scoped(thumbnail):
 
 def test_only_individual_source_extractors_are_loaded(config):
     with yt_dlp.YoutubeDL(sources.options(config)) as ydl:
-        assert set(ydl._ies) == {"Youtube", "Soundcloud", "TikTok"}
+        assert set(ydl._ies) == {"Youtube", "Soundcloud", "TikTok", "Instagram"}
 
 
 @pytest.fixture
@@ -339,7 +339,7 @@ def test_source_settings_and_csp(client):
     platforms = {p["name"]: p["status"] for p in response.json()["platforms"]}
     assert "public unprotected tracks" in platforms["SoundCloud"]
     assert "individual videos" in platforms["TikTok"]
-    assert platforms["Instagram"] == "planned"
+    assert "individual Reels/video posts" in platforms["Instagram"]
     csp = response.headers["Content-Security-Policy"]
     assert "https://*.sndcdn.com" in csp and "https://*.tiktokcdn.com" in csp
     assert "https:" not in csp.split("img-src", 1)[1].split(";", 1)[0].split()

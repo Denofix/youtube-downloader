@@ -21,10 +21,12 @@ YOUTUBE_HOSTS = {
 }
 SOUNDCLOUD_HOSTS = {"soundcloud.com", "www.soundcloud.com", "m.soundcloud.com", "on.soundcloud.com"}
 TIKTOK_HOSTS = {"tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"}
-PLANNED_HOSTS = {"instagram.com", "pinterest.com", "pin.it"}
+INSTAGRAM_HOSTS = {"instagram.com", "www.instagram.com", "m.instagram.com"}
+PLANNED_HOSTS = {"pinterest.com", "pin.it"}
 THUMBNAIL_DOMAINS = {
     "YouTube": ("ytimg.com",),
     "SoundCloud": ("sndcdn.com",),
+    "Instagram": ("cdninstagram.com", "fbcdn.net"),
     "TikTok": (
         "tiktokcdn.com",
         "tiktokcdn-us.com",
@@ -44,7 +46,9 @@ def platform_for(url: str) -> str:
         return "SoundCloud"
     if host in TIKTOK_HOSTS:
         return "TikTok"
-    raise ServiceError("invalid_url", "Use a YouTube, SoundCloud or TikTok link.")
+    if host in INSTAGRAM_HOSTS:
+        return "Instagram"
+    raise ServiceError("invalid_url", "Use a YouTube, SoundCloud, TikTok or Instagram link.")
 
 
 def validate_url(value: str) -> str:
@@ -61,6 +65,15 @@ def validate_url(value: str) -> str:
         ):
             raise ValueError
         host = (url.hostname or "").lower()
+        if host in INSTAGRAM_HOSTS:
+            match = re.fullmatch(r"/(p|reel|reels|tv)/([A-Za-z0-9_-]{1,64})/?", url.path)
+            if match:
+                route = "reel" if match[1] == "reels" else match[1]
+                return f"https://www.instagram.com/{route}/{match[2]}/"
+            raise ServiceError(
+                "instagram_permalink_required",
+                "Use the full link to one Instagram Reel or video post. Open share links in your browser first. Profiles, Stories and live streams are not supported in this stage.",
+            )
         if host in SOUNDCLOUD_HOSTS:
             if host == "on.soundcloud.com" and re.fullmatch(r"/[A-Za-z0-9_-]{1,128}/?", url.path):
                 return "https://on.soundcloud.com" + url.path.rstrip("/")
@@ -120,7 +133,7 @@ def validate_url(value: str) -> str:
             if any(host == h or host.endswith("." + h) for h in PLANNED_HOSTS):
                 raise ServiceError(
                     "platform_planned",
-                    "This platform is planned for a later stage. Use YouTube, SoundCloud or a TikTok video in this build.",
+                    "This platform is planned for a later stage. Use YouTube, SoundCloud, TikTok or an Instagram video in this build.",
                 )
             raise ValueError
         if host.endswith("youtu.be"):
@@ -136,7 +149,8 @@ def validate_url(value: str) -> str:
         return "https://www.youtube.com/watch?v=" + video_id
     except (ValueError, TypeError):
         raise ServiceError(
-            "invalid_url", "Enter a YouTube video, public SoundCloud track or TikTok video URL."
+            "invalid_url",
+            "Enter a YouTube video, public SoundCloud track, TikTok post or Instagram video URL.",
         ) from None
 
 
@@ -202,7 +216,7 @@ def options(config: Settings):
         "no_warnings": True,
         "logger": QuietLogger(),
         "noplaylist": True,
-        "allowed_extractors": ["youtube$", "soundcloud$", "tiktok$"],
+        "allowed_extractors": ["youtube$", "soundcloud$", "tiktok$", "instagram$"],
         "socket_timeout": 20,
         "retries": 2,
         "fragment_retries": 2,
@@ -264,6 +278,8 @@ def normalize(info: dict, url: str):
     platform = platform_for(url)
     if (info.get("duration") or 0) > 7200:
         raise ServiceError("media_limit", "This media exceeds the two hour limit.")
+    if platform == "Instagram":
+        require_single_instagram_video(info)
     if info.get("_type") in {"playlist", "multi_video"} or info.get("entries") is not None:
         raise ServiceError(
             "collection_planned",
@@ -359,7 +375,7 @@ def normalize(info: dict, url: str):
                     format_identity(p, "video" if index == 0 and len(parts) == 2 else "clip_audio")
                     for index, p in enumerate(parts)
                 ]
-                if platform == "TikTok"
+                if platform in {"TikTok", "Instagram"}
                 else None,
                 "kind": "video" if video else "audio",
                 "container": container,
@@ -426,6 +442,21 @@ def normalize(info: dict, url: str):
     }
 
 
+def require_single_instagram_video(info, source_id=None):
+    """Reject a carousel before yt-dlp processes or downloads any child entries."""
+    if not isinstance(info, dict):
+        raise ServiceError("source_unavailable", "Instagram did not return this video.")
+    if info.get("_type") in {"playlist", "multi_video"} or info.get("entries") is not None:
+        raise ServiceError(
+            "instagram_carousel_planned",
+            "This Instagram post is a carousel. Photo and carousel selection is the next Instagram stage. Use one Reel or video post for now.",
+        )
+    if info.get("_type") not in {None, "video"}:
+        raise ServiceError("source_unavailable", "Instagram did not return one direct video.")
+    if source_id is not None and info.get("id") != source_id:
+        raise ServiceError("source_changed", "The source changed. Analyze the link again.")
+
+
 def analyze(url, config):
     url = resolve_url(url)
     if platform_for(url) == "TikTok" and "/photo/" in urlsplit(url).path:
@@ -434,7 +465,13 @@ def analyze(url, config):
         return photos.analyze(url, config)
     try:
         with yt_dlp.YoutubeDL(options(config)) as ydl:
-            return normalize(ydl.extract_info(url, download=False), url)
+            if platform_for(url) == "Instagram":
+                info = ydl.extract_info(url, download=False, process=False)
+                require_single_instagram_video(info)
+                info = ydl.process_ie_result(info, download=False)
+            else:
+                info = ydl.extract_info(url, download=False)
+            return normalize(info, url)
     except yt_dlp.utils.DownloadError as error:
         raise extractor_error(error) from None
 
@@ -560,10 +597,79 @@ def _download_one(analysis, choice, profile, bitrate, directory: Path, config, r
             yield next((item for item in clean if item["format_id"] == desired_id), clean[0])
 
         opts["format"] = exact_representation
+    if analysis.get("platform") == "Instagram":
+        identities = choice.get("source_formats")
+        if not identities:
+            raise ServiceError("analysis_expired", "Analyze this Instagram video again.")
+        if profile == "mp3" and len(identities) == 2:
+            identities = identities[-1:]
+
+        def exact_instagram_formats(context):
+            selected = []
+            for identity in identities:
+                matching = [
+                    item
+                    for item in context["formats"]
+                    if not item.get("has_drm")
+                    and all(
+                        item.get(key) == identity.get(key)
+                        for key in (
+                            "ext",
+                            "width",
+                            "height",
+                            "fps",
+                            "vcodec",
+                            "acodec",
+                            "abr",
+                            "tbr",
+                        )
+                    )
+                ]
+                if not matching:
+                    raise ServiceError(
+                        "format_unavailable",
+                        "This exact Instagram quality/codec is no longer available. Analyze the link again.",
+                    )
+                exact_id = next(
+                    (item for item in matching if item["format_id"] == identity["format_id"]),
+                    None,
+                )
+                known_quality = (
+                    identity.get("vcodec") not in {None, "none"}
+                    and identity.get("width")
+                    and identity.get("height")
+                ) or (
+                    identity.get("vcodec") == "none"
+                    and identity.get("acodec") not in {None, "none"}
+                    and identity.get("abr")
+                )
+                if exact_id is None and not known_quality:
+                    raise ServiceError(
+                        "format_unavailable",
+                        "The source changed an Instagram format without enough quality details to match it. Analyze the link again.",
+                    )
+                selected.append(exact_id or matching[0])
+            if len(selected) == 1:
+                yield selected[0]
+            else:
+                yield {
+                    "format_id": "+".join(item["format_id"] for item in selected),
+                    "ext": choice["container"],
+                    "requested_formats": selected,
+                    "protocol": "+".join(item["protocol"] for item in selected),
+                }
+
+        opts["format"] = exact_instagram_formats
     report("analyzing")
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
-            info = ydl.extract_info(validate_url(analysis["url"]), download=True)
+            url = validate_url(analysis["url"])
+            if analysis.get("platform") == "Instagram":
+                raw = ydl.extract_info(url, download=False, process=False)
+                require_single_instagram_video(raw, analysis["source_id"])
+                info = ydl.process_ie_result(raw, download=True)
+            else:
+                info = ydl.extract_info(url, download=True)
         if not info or info.get("id") != analysis["source_id"]:
             raise ServiceError("source_changed", "The source changed. Analyze the link again.")
         if analysis.get("platform") == "TikTok" and any(

@@ -167,7 +167,11 @@ def create_app(config: Settings = settings):
                     "name": "TikTok",
                     "status": "individual videos verified; photo posts and selected-photo ZIP delivery implemented",
                 },
-                *[{"name": p, "status": "planned"} for p in ("Instagram", "Pinterest")],
+                {
+                    "name": "Instagram",
+                    "status": "individual Reels/video posts implemented; see live verification report; photos/carousels next",
+                },
+                {"name": "Pinterest", "status": "planned"},
             ],
             "presets": [
                 {

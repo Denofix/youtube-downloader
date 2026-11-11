@@ -2,14 +2,16 @@
 
 A self-hosted media workspace evolving from Nord_Fillin's YouTube Downloader. Vue 3 + TypeScript, FastAPI, a separate worker, yt-dlp, FFmpeg, Pillow and a persistent SQLite queue.
 
-Analyze an individual YouTube/TikTok video, TikTok photo post or public SoundCloud track. Select actual source formats or photos and queue a verified download. Upload media, inspect contents, convert files and retrieve verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
+Analyze an individual YouTube/TikTok/Instagram video, TikTok photo post or public SoundCloud track. Select actual source formats or photos and queue a verified download. Upload media, inspect contents, convert files and retrieve verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
 
-**Verification:** 159 backend/media/process cases pass locally. [Compatible TikTok playback verification](docs/media-service/tiktok-playback.md) passed all four offered source renditions for the supplied post, including 1080 × 1920 H.265 → H.264/AAC MP4, plus MP3 and full decoding/HTTP retrieval. The owner confirmed compatible TikTok playback in Windows Media Player and a public SoundCloud M4A download/playback on 11 November 2026. An unprotected SoundCloud control track passes M4A/MP3 delivery; the supplied remix returns DRM protection. The [source failure follow-up](docs/media-service/source-failure-followup.md), [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json) and earlier [CI evidence](docs/media-service/stage-2.md) are retained separately. TikTok [photo-post verification](docs/media-service/stage-3.md) adds a real single image and two-image carousel, original bytes, ZIP and PNG conversion; the owner photo check remains pending. Only recorded scenarios are confirmed.
+**Verification:** 212 backend/media/process cases pass locally. [Compatible TikTok playback verification](docs/media-service/tiktok-playback.md) passed all four offered source renditions for the supplied post, including 1080 × 1920 H.265 → H.264/AAC MP4, plus MP3 and full decoding/HTTP retrieval. The owner confirmed compatible TikTok playback in Windows Media Player and a public SoundCloud M4A download/playback on 11 November 2026. An unprotected SoundCloud control track passes M4A/MP3 delivery; the supplied remix returns DRM protection. The [source failure follow-up](docs/media-service/source-failure-followup.md), [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json) and earlier [CI evidence](docs/media-service/stage-2.md) are retained separately. TikTok [photo-post verification](docs/media-service/stage-3.md) adds a real single image and two-image carousel, original bytes, ZIP and PNG conversion; the owner photo check remains pending. Only recorded scenarios are confirmed.
+
+Instagram [stage 4a](docs/media-service/stage-4a.md) passed a real 720 × 1280 H.264/AAC Reel download and MP3 delivery, plus two silent video samples. Access varies by publication; owner-instance Instagram verification remains pending.
 
 ## Start
 
 ```bash
-git clone --branch feat/tiktok-photos https://github.com/Denofix/youtube-downloader.git download-convert
+git clone --branch feat/instagram-video https://github.com/Denofix/youtube-downloader.git download-convert
 cd download-convert
 cp .env.example .env
 docker compose up --build -d --wait
@@ -42,13 +44,14 @@ TikTok video delivery now uses **compatible H.264/AAC MP4** at the selected dime
 
 - Download real source format IDs with resolution/FPS/codecs/audio/size details, track merging and explicit MP3 encoding. Missing formats require fresh analysis; no silent quality fallback.
 - Accept public SoundCloud track permalinks and TikTok video permalinks, plus bounded same-platform share redirects. SoundCloud previews are rejected; TikTok MP3 comes from the selected video, not a separate potentially different music track.
+- Accept full Instagram Reel/video-post permalinks through the same queue, exact-quality selection and MP3 workflow. Reject carousels before processing their children; photos, Stories, profiles and opaque share URLs are outside this first Instagram slice. See [stage 4a](docs/media-service/stage-4a.md) for live evidence and access limits.
 - Analyze TikTok photo posts, preview and select images, retrieve separate originals plus a source-ordered ZIP, and convert retained photos. Originals/previews are cached during analysis; the selected delivery reuses the verified snapshot.
 - Convert compatible MP4/WebM/MKV/MOV, MP3/M4A/WAV/FLAC/OGG, GIF clips, JPG/PNG/WebP and animated GIF to video. Options depend on detected contents and installed encoders.
 - Persist queued/running/completed/failed/cancelled tasks, separate operations and real per-operation progress. Cancel, retry, recover after restart, reuse a result and show file expiry.
 - Default limits: one processing job, 512 MiB per file, 5 GiB media storage, 30 minutes per task, 24-hour results. Configure owner values in `.env`.
 - Graphite/orange Download, Convert, Tasks and Settings pages, keyboard focus/labels, mobile layout and worker diagnostics.
 
-Instagram, Pinterest and batch upload UI are planned. TikTok photo selection and ZIP delivery are implemented in this stage; see [stage 3](docs/media-service/stage-3.md). The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
+Instagram photo/carousel selection, Pinterest and batch upload UI are planned. Individual Instagram videos are implemented in [stage 4a](docs/media-service/stage-4a.md); TikTok photo selection and ZIP delivery are implemented in [stage 3](docs/media-service/stage-3.md). The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
 
 ## Architecture
 
