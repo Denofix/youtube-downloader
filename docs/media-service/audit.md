@@ -1,3 +1,5 @@
+> Historical audit/handoff from the interrupted first session. Implementation has since been restored on `feat/media-platform`; see the root README and support matrix for current status. Historical test results below are not substituted for fresh checks.
+
 # Legacy downloader audit
 
 Audited on 11 November 2026 at commit [30f0e41abd27c091c71342c19b0f277ca64e7f9d](https://github.com/Denofix/youtube-downloader/tree/30f0e41abd27c091c71342c19b0f277ca64e7f9d).

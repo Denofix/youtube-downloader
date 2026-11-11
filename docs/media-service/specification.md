@@ -1,3 +1,5 @@
+> Historical audit/handoff from the interrupted first session. Implementation has since been restored on `feat/media-platform`; see the root README and support matrix for current status. Historical test results below are not substituted for fresh checks.
+
 # Download & Convert — consolidated specification
 
 Combined functional and visual requirements, 11 November 2026. This is the complete target, not a claim that this documentation branch implements it. Preserve Git history, Nord_Fillin attribution and the existing MIT license. Code, UI and README are English; collaboration with the owner is Russian.

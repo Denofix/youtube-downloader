@@ -1,3 +1,5 @@
+> Historical audit/handoff from the interrupted first session. Implementation has since been restored on `feat/media-platform`; see the root README and support matrix for current status. Historical test results below are not substituted for fresh checks.
+
 # Implementation handoff — interrupted before source publication
 
 ## Publication boundary
