@@ -15,12 +15,13 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
+    container: python:3.12-bookworm
+    defaults:
+      run:
+        shell: bash
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-python@v7.1.0
-        with:
-          python-version: "3.12"
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: "24"
@@ -33,23 +34,8 @@ jobs:
       - name: Install locked dependencies and media tools
         timeout-minutes: 5
         run: |
-          # Use Ubuntu's HTTPS origin directly when the runner's Azure mirror is unavailable.
-          cat > "$RUNNER_TEMP/ubuntu.sources" <<'SOURCES'
-          Types: deb
-          URIs: https://archive.ubuntu.com/ubuntu
-          Suites: noble noble-updates noble-backports
-          Components: main universe restricted multiverse
-          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-
-          Types: deb
-          URIs: https://security.ubuntu.com/ubuntu
-          Suites: noble-security
-          Components: main universe restricted multiverse
-          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-          SOURCES
-          apt_options=(-o "Dir::Etc::sourcelist=$RUNNER_TEMP/ubuntu.sources" -o 'Dir::Etc::sourceparts=-' -o Acquire::Retries=2 -o Acquire::https::Timeout=15)
-          sudo apt-get "${apt_options[@]}" update --error-on=any
-          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends ffmpeg
+          apt-get -o Acquire::Retries=2 update --error-on=any
+          apt-get -o Acquire::Retries=2 install -y --no-install-recommends ffmpeg chromium
           uv sync --frozen --all-groups
       - name: Backend checks
         run: |
@@ -66,10 +52,7 @@ jobs:
           npm run build
       - name: Real browser integration and screenshots
         run: |
-          if ! command -v google-chrome > /dev/null; then
-            uv run --no-sync playwright install --with-deps chromium
-          fi
-          uv run --no-sync python scripts/check_ui.py
+          uv run --no-sync python scripts/check_ui.py --chromium /usr/bin/chromium
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
