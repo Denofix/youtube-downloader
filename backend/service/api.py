@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import media
+from . import media, photos
 from .config import Settings, settings
 from .diagnostics import runtime_status
 from .errors import ServiceError
@@ -38,6 +38,13 @@ class DownloadRequest(ControlledRequest):
     choice_id: str = Field(pattern=r"^option_[0-9]{1,4}$")
     profile: Literal["original", "compatible", "mp3"] = "original"
     bitrate: Literal[128, 192, 320] = 192
+
+
+class PhotoDownloadRequest(ControlledRequest):
+    analysis_id: ID
+    item_ids: list[Annotated[str, Field(pattern=r"^photo_[1-9][0-9]?$", strict=True)]] = Field(
+        min_length=1, max_length=photos.MAX_ITEMS
+    )
 
 
 class Parameters(ControlledRequest):
@@ -158,7 +165,7 @@ def create_app(config: Settings = settings):
                 },
                 {
                     "name": "TikTok",
-                    "status": "individual videos; live sample and owner Windows playback verified",
+                    "status": "individual videos verified; photo posts and selected-photo ZIP delivery implemented",
                 },
                 *[{"name": p, "status": "planned"} for p in ("Instagram", "Pinterest")],
             ],
@@ -243,6 +250,46 @@ def create_app(config: Settings = settings):
                     "choice_id": body.choice_id,
                     "profile": profile,
                     "bitrate": body.bitrate,
+                },
+            )
+        )
+
+    @app.post("/api/photo-downloads", status_code=202)
+    def photo_download(body: PhotoDownloadRequest):
+        source = store.get(body.analysis_id)
+        analysis = source["result"]
+        if (
+            source["kind"] != "analyze"
+            or source["state"] != "completed"
+            or not analysis
+            or source["expires_at"] < time.time()
+        ):
+            raise ServiceError(
+                "analysis_expired", "Analyze this photo post again before choosing items."
+            )
+        if analysis.get("kind") != "photos" or analysis.get("platform") != "TikTok":
+            raise ServiceError(
+                "invalid_selection", "Choose photos from a completed photo analysis."
+            )
+        ids = set(body.item_ids)
+        selected = [item for item in analysis["items"] if item["id"] in ids]
+        if len(ids) != len(body.item_ids) or len(selected) != len(ids):
+            raise ServiceError("invalid_selection", "Choose each photo once from this analysis.")
+        for item in selected:
+            try:
+                store.asset(item["source_asset_id"])
+            except ServiceError:
+                raise ServiceError(
+                    "analysis_expired", "A retained photo expired. Analyze this post again."
+                ) from None
+        return public_task(
+            store.create(
+                "download",
+                analysis["title"],
+                {
+                    "analysis": analysis,
+                    "item_ids": [item["id"] for item in selected],
+                    "asset_ids": [item["source_asset_id"] for item in selected],
                 },
             )
         )

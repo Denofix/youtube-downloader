@@ -64,8 +64,8 @@ def test_new_sources_reject_unsafe_and_collection_urls(url):
         sources.validate_url(url)
 
 
-def test_photos_and_live_have_specific_next_steps():
-    for path, code in (("photo/123", "photo_planned"), ("live", "live_unsupported")):
+def test_live_has_specific_next_steps():
+    for path, code in (("live", "live_unsupported"),):
         with pytest.raises(ServiceError) as failure:
             sources.validate_url("https://www.tiktok.com/@test/" + path)
         assert failure.value.code == code
@@ -107,7 +107,6 @@ def test_short_links_are_bounded_and_stop_before_the_final_item(monkeypatch):
         "http://169.254.169.254/latest/meta-data/",
         "file:///etc/passwd",
         "https://evil.tiktok.com/@test/video/1",
-        "https://www.tiktok.com/@test/photo/1",
         "https://www.tiktok.com/@test/live",
         TRACK,
         "https://vm.tiktok.com/Loop/",

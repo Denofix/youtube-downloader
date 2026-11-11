@@ -13,7 +13,7 @@ import httpx
 
 
 @contextmanager
-def running_instance():
+def running_instance(worker_script: Path | None = None):
     root = Path(__file__).resolve().parents[1]
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -55,7 +55,9 @@ def running_instance():
                 else:
                     raise RuntimeError("The disposable API did not start.")
             worker = subprocess.Popen(
-                [sys.executable, "-m", "service.worker"],
+                [sys.executable, str(worker_script)]
+                if worker_script
+                else [sys.executable, "-m", "service.worker"],
                 cwd=root,
                 env=env,
                 stdout=subprocess.DEVNULL,
