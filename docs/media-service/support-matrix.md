@@ -27,7 +27,7 @@ Pinterest returns `platform_planned`; Instagram photo/carousel posts return spec
 
 Presets expose actual behavior: Original uses exact source streams; Audio MP3 has an explicit bitrate; Smaller Video encodes H.264 CRF 25 or VP9 CRF 34 with no guaranteed size reduction; GIF Clip has a maximum 15 seconds, 24 FPS and 720-pixel width. Increasing bitrate or resolution does not restore detail.
 
-The expanded backend test suite passed locally with **209 cases**. The first-stage GitHub Actions passed desktop/mobile browser scenarios, real MP3 retrieval/GIF/WebP conversion and Docker Compose build/start. The second-stage browser check adds SoundCloud desktop and TikTok mobile forms using explicitly identified metadata fixtures. Actual CI results are recorded in stage-2.md; controlled checks remain separate from live source evidence.
+The expanded backend test suite passed locally with **212 cases**. The first-stage GitHub Actions passed desktop/mobile browser scenarios, real MP3 retrieval/GIF/WebP conversion and Docker Compose build/start. The second-stage browser check adds SoundCloud desktop and TikTok mobile forms using explicitly identified metadata fixtures. Actual CI results are recorded in stage-2.md; controlled checks remain separate from live source evidence.
 
 The owner-supplied SoundCloud track was reported DRM-protected by the upstream extractor. It now produces a specific `drm_protected` error. Public unprotected SoundCloud track delivery still passes after installing curl-cffi. See source-failure-followup.md for the distinction and safe in-container diagnostics.
 

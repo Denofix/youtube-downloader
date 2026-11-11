@@ -57,6 +57,8 @@ def instagram(monkeypatch, media_server):
         "silent": False,
         "split": False,
         "carousel": False,
+        "unknown_geometry": False,
+        "missing_audio": False,
         "error": None,
     }
 
@@ -83,7 +85,10 @@ def instagram(monkeypatch, media_server):
             "fps": 12,
         }
         formats = [video]
-        if state["split"]:
+        if state["unknown_geometry"]:
+            video.pop("width")
+            video.pop("height")
+        if state["split"] and not state["missing_audio"]:
             formats.append(
                 {
                     "format_id": "audio-0",
@@ -169,6 +174,28 @@ def test_instagram_format_ids_may_change_without_changing_quality(client, store,
     finished = download(client, store, task)
     assert finished["state"] == "completed", finished
     assert finished["result"]["source_format_ids"] == ["changed-id"]
+
+
+@pytest.mark.parametrize("changed_id", [False, True])
+def test_instagram_unknown_geometry_requires_the_original_format_id(
+    client, store, instagram, changed_id
+):
+    instagram["unknown_geometry"] = True
+    task = analyze(client, store)
+    instagram["changed_id"] = changed_id
+    finished = download(client, store, task)
+    if changed_id:
+        assert finished["state"] == "failed" and finished["error"]["code"] == "format_unavailable"
+    else:
+        assert finished["state"] == "completed", finished
+
+
+def test_instagram_missing_selected_audio_does_not_publish_a_silent_video(client, store, instagram):
+    instagram["split"] = True
+    task = analyze(client, store)
+    instagram["missing_audio"] = True
+    finished = download(client, store, task)
+    assert finished["state"] == "failed" and finished["error"]["code"] == "format_unavailable"
 
 
 @pytest.mark.parametrize(

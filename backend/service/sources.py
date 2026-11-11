@@ -630,12 +630,25 @@ def _download_one(analysis, choice, profile, bitrate, directory: Path, config, r
                         "format_unavailable",
                         "This exact Instagram quality/codec is no longer available. Analyze the link again.",
                     )
-                selected.append(
-                    next(
-                        (item for item in matching if item["format_id"] == identity["format_id"]),
-                        matching[0],
-                    )
+                exact_id = next(
+                    (item for item in matching if item["format_id"] == identity["format_id"]),
+                    None,
                 )
+                known_quality = (
+                    identity.get("vcodec") not in {None, "none"}
+                    and identity.get("width")
+                    and identity.get("height")
+                ) or (
+                    identity.get("vcodec") == "none"
+                    and identity.get("acodec") not in {None, "none"}
+                    and identity.get("abr")
+                )
+                if exact_id is None and not known_quality:
+                    raise ServiceError(
+                        "format_unavailable",
+                        "The source changed an Instagram format without enough quality details to match it. Analyze the link again.",
+                    )
+                selected.append(exact_id or matching[0])
             if len(selected) == 1:
                 yield selected[0]
             else:
