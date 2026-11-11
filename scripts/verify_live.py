@@ -13,7 +13,7 @@ from local_instance import running_instance
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("url", help="One appropriate public short YouTube video URL")
+    parser.add_argument("url", help="One public YouTube/TikTok video or SoundCloud track permalink")
     parser.add_argument("--base", default="http://127.0.0.1:8080")
     parser.add_argument(
         "--ephemeral", action="store_true", help="Use a disposable local API/worker"
@@ -48,17 +48,34 @@ def main():
         )
         if task["state"] == "completed":
             choices = [
-                c for c in task["result"]["choices"] if c["kind"] == "video" and c["has_audio"]
+                c
+                for c in task["result"]["choices"]
+                if c["kind"] == task["result"]["kind"] and c["has_audio"]
             ]
-            choice = min(
-                choices,
-                key=lambda c: (
-                    c["height"] or 99999,
-                    c["operation"] != "merge",
-                    c["container"] != "mp4",
-                ),
+            choice = (
+                min(
+                    choices,
+                    key=lambda c: (
+                        c["height"] or 99999,
+                        c["operation"] != "merge",
+                        c["container"] != "mp4",
+                    ),
+                )
+                if choices
+                else None
             )
-            for profile in ("original", "mp3"):
+            if choice is None:
+                checks.append(
+                    {
+                        "scenario": "select a source with audio",
+                        "state": "failed",
+                        "error": {
+                            "code": "no_audio",
+                            "message": "No compatible source with audio was returned.",
+                        },
+                    }
+                )
+            for profile in ("original", "mp3") if choice else ():
                 result = wait(
                     post(
                         "/downloads",
@@ -75,6 +92,8 @@ def main():
                     "state": result["state"],
                     "source_format_ids": choice["source_format_ids"],
                     "selected_height": choice["height"],
+                    "selected_width": choice["width"],
+                    "selected_kind": choice["kind"],
                     "error": result["error"],
                 }
                 if result["state"] == "completed":
@@ -87,6 +106,8 @@ def main():
         report = {
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "source": args.url,
+            "platform": task["result"].get("platform") if task["result"] else None,
+            "publication_type": task["result"].get("kind") if task["result"] else None,
             "versions": client.get("/api/settings").json()["versions"],
             "checks": checks,
         }

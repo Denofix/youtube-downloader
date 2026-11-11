@@ -1,6 +1,8 @@
 import re
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
+from urllib.error import HTTPError, URLError
+from urllib.parse import parse_qs, urljoin, urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 import yt_dlp
 
@@ -15,12 +17,40 @@ YOUTUBE_HOSTS = {
     "youtu.be",
     "www.youtu.be",
 }
-PLANNED_HOSTS = {"tiktok.com", "soundcloud.com", "instagram.com", "pinterest.com", "pin.it"}
+SOUNDCLOUD_HOSTS = {"soundcloud.com", "www.soundcloud.com", "m.soundcloud.com", "on.soundcloud.com"}
+TIKTOK_HOSTS = {"tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"}
+PLANNED_HOSTS = {"instagram.com", "pinterest.com", "pin.it"}
+THUMBNAIL_DOMAINS = {
+    "YouTube": ("ytimg.com",),
+    "SoundCloud": ("sndcdn.com",),
+    "TikTok": (
+        "tiktokcdn.com",
+        "tiktokcdn-us.com",
+        "tiktokcdn-eu.com",
+        "byteoversea.com",
+        "ibytedtos.com",
+        "ibyteimg.com",
+    ),
+}
+
+
+def platform_for(url: str) -> str:
+    host = urlsplit(url).hostname
+    if host in YOUTUBE_HOSTS:
+        return "YouTube"
+    if host in SOUNDCLOUD_HOSTS:
+        return "SoundCloud"
+    if host in TIKTOK_HOSTS:
+        return "TikTok"
+    raise ServiceError("invalid_url", "Use a YouTube, SoundCloud or TikTok link.")
 
 
 def validate_url(value: str) -> str:
     try:
-        url = urlsplit(value.strip())
+        value = value.strip()
+        if len(value) > 2048 or re.search(r"[\x00-\x20\x7f\\]", value):
+            raise ValueError
+        url = urlsplit(value)
         if (
             url.scheme not in {"https", "http"}
             or url.username
@@ -29,11 +59,71 @@ def validate_url(value: str) -> str:
         ):
             raise ValueError
         host = (url.hostname or "").lower()
+        if host in SOUNDCLOUD_HOSTS:
+            if host == "on.soundcloud.com" and re.fullmatch(r"/[A-Za-z0-9_-]{1,128}/?", url.path):
+                return "https://on.soundcloud.com" + url.path.rstrip("/")
+            match = re.fullmatch(r"/([A-Za-z0-9_-]{1,200})/([A-Za-z0-9_-]{1,200})/?", url.path)
+            if host == "on.soundcloud.com" or not match:
+                raise ServiceError(
+                    "collection_planned",
+                    "Use one public SoundCloud track permalink. Profiles and playlists are planned for later.",
+                )
+            artist, track = match.groups()
+            if artist.lower() in {
+                "discover",
+                "stations",
+                "search",
+                "charts",
+                "you",
+                "tags",
+                "settings",
+            } or track.lower() in {
+                "tracks",
+                "albums",
+                "sets",
+                "reposts",
+                "likes",
+                "spotlight",
+                "comments",
+            }:
+                raise ServiceError(
+                    "collection_planned",
+                    "Use one public SoundCloud track permalink. Profiles and playlists are planned for later.",
+                )
+            if "secret_token" in parse_qs(url.query):
+                raise ServiceError(
+                    "access_required", "Use a public SoundCloud track permalink in this build."
+                )
+            return f"https://soundcloud.com/{artist}/{track}"
+        if host in TIKTOK_HOSTS:
+            if host in {"vm.tiktok.com", "vt.tiktok.com"}:
+                if re.fullmatch(r"/[A-Za-z0-9_-]{1,128}/?", url.path):
+                    return f"https://{host}" + url.path.rstrip("/") + "/"
+                raise ValueError
+            if re.fullmatch(r"/t/[A-Za-z0-9_-]{1,128}/?", url.path):
+                return "https://www.tiktok.com" + url.path.rstrip("/") + "/"
+            match = re.fullmatch(r"/@([A-Za-z0-9_.]{1,64})/video/([0-9]{1,30})/?", url.path)
+            if match:
+                return f"https://www.tiktok.com/@{match[1]}/video/{match[2]}"
+            if re.fullmatch(r"/@[^/]+/photo/[0-9]+/?", url.path):
+                raise ServiceError(
+                    "photo_planned",
+                    "TikTok photos and carousels are planned for the next stage. Use a video permalink.",
+                )
+            if url.path.rstrip("/").endswith("/live"):
+                raise ServiceError(
+                    "live_unsupported",
+                    "Use a finished TikTok video. Live streams are not supported.",
+                )
+            raise ServiceError(
+                "collection_planned",
+                "Use one TikTok video permalink. Profiles, sounds and collections are planned for later.",
+            )
         if host not in YOUTUBE_HOSTS:
             if any(host == h or host.endswith("." + h) for h in PLANNED_HOSTS):
                 raise ServiceError(
                     "platform_planned",
-                    "This platform is planned for the next stage. Use an individual YouTube video in this build.",
+                    "This platform is planned for a later stage. Use YouTube, SoundCloud or a TikTok video in this build.",
                 )
             raise ValueError
         if host.endswith("youtu.be"):
@@ -49,8 +139,57 @@ def validate_url(value: str) -> str:
         return "https://www.youtube.com/watch?v=" + video_id
     except (ValueError, TypeError):
         raise ServiceError(
-            "invalid_url", "Enter an individual YouTube video or Shorts URL."
+            "invalid_url", "Enter a YouTube video, public SoundCloud track or TikTok video URL."
         ) from None
+
+
+def is_short_url(url: str) -> bool:
+    parts = urlsplit(url)
+    return parts.hostname in {"on.soundcloud.com", "vm.tiktok.com", "vt.tiktok.com"} or (
+        parts.hostname == "www.tiktok.com" and parts.path.startswith("/t/")
+    )
+
+
+class NoRedirects(HTTPRedirectHandler):
+    def redirect_request(self, request, fp, code, message, headers, newurl):
+        return None
+
+
+def resolve_url(value: str) -> str:
+    """Resolve share links only in the worker, checking each hop before requesting it."""
+    url = validate_url(value)
+    platform = platform_for(url)
+    opener = build_opener(NoRedirects())
+    seen = set()
+    for _ in range(5):
+        if not is_short_url(url):
+            return url
+        if url in seen:
+            break
+        seen.add(url)
+        try:
+            request = Request(url, method="HEAD", headers={"User-Agent": "facebookexternalhit/1.1"})
+            try:
+                response = opener.open(request, timeout=15)
+            except HTTPError as error:
+                response = error
+            with response:
+                if response.code not in {301, 302, 303, 307, 308} or not response.headers.get(
+                    "Location"
+                ):
+                    break
+                candidate = validate_url(urljoin(url, response.headers["Location"]))
+                if platform_for(candidate) != platform:
+                    break
+                url = candidate
+        except (OSError, URLError, ValueError, ServiceError):
+            break
+    if not is_short_url(url):
+        return url
+    raise ServiceError(
+        "short_link_error",
+        "This share link could not be resolved to one supported item. Open it in your browser and paste the full track or video permalink.",
+    )
 
 
 class QuietLogger:
@@ -66,6 +205,7 @@ def options(config: Settings):
         "no_warnings": True,
         "logger": QuietLogger(),
         "noplaylist": True,
+        "allowed_extractors": ["youtube$", "soundcloud$", "tiktok$"],
         "socket_timeout": 20,
         "retries": 2,
         "fragment_retries": 2,
@@ -83,11 +223,13 @@ def options(config: Settings):
 
 
 def normalize(info: dict, url: str):
+    platform = platform_for(url)
     if (info.get("duration") or 0) > 7200:
-        raise ServiceError("media_limit", "This video exceeds the two hour limit.")
+        raise ServiceError("media_limit", "This media exceeds the two hour limit.")
     if info.get("_type") in {"playlist", "multi_video"} or info.get("entries") is not None:
         raise ServiceError(
-            "collection_planned", "Collections are planned for a later stage. Use one video URL."
+            "collection_planned",
+            "Collections are planned for a later stage. Use one track or video URL.",
         )
     if info.get("is_live") or info.get("live_status") in {"is_live", "is_upcoming", "post_live"}:
         raise ServiceError(
@@ -101,6 +243,10 @@ def normalize(info: dict, url: str):
         and f.get("ext")
         in {"mp4", "m4a", "webm", "mkv", "mp3", "ogg", "opus", "aac", "wav", "flac"}
         and not f.get("has_drm")
+        and f.get("vcodec") != "bytevc2"
+        and not (platform == "SoundCloud" and "preview" in str(f.get("format_id", "")).lower())
+        # TikTok's separate music URL can be a different/longer soundtrack than the clip.
+        and not (platform == "TikTok" and f.get("vcodec") == "none")
     ]
     audio = [f for f in formats if f.get("vcodec") == "none" and f.get("acodec", "none") != "none"]
     choices = []
@@ -140,6 +286,8 @@ def normalize(info: dict, url: str):
                 "height": f.get("height"),
                 "width": f.get("width"),
                 "fps": f.get("fps"),
+                "audio_bitrate": next((p.get("abr") for p in parts if p.get("abr")), None),
+                "format_note": f.get("format_note"),
                 "video_codec": f.get("vcodec") if video else None,
                 "audio_codec": next(
                     (p.get("acodec") for p in parts if p.get("acodec", "none") != "none"), None
@@ -151,6 +299,13 @@ def normalize(info: dict, url: str):
             }
         )
     if not choices:
+        if platform == "SoundCloud" and any(
+            "preview" in str(f.get("format_id", "")).lower() for f in info.get("formats", [])
+        ):
+            raise ServiceError(
+                "preview_only",
+                "SoundCloud returned only a preview. A full track is not available with the current access. Choose another public track or check owner access.",
+            )
         raise ServiceError(
             "no_formats",
             "No supported formats were returned. Check access and tool versions, then analyze again.",
@@ -160,26 +315,30 @@ def normalize(info: dict, url: str):
         parsed = urlsplit(thumbnail)
         if (
             parsed.scheme != "https"
-            or not (parsed.hostname or "").endswith(".ytimg.com")
+            or not any(
+                (parsed.hostname or "").endswith("." + domain)
+                for domain in THUMBNAIL_DOMAINS[platform]
+            )
             or parsed.username
             or parsed.password
+            or parsed.netloc != parsed.hostname
         ):
             thumbnail = None
     return {
         "url": url,
         "source_id": info.get("id"),
-        "title": info.get("title") or "YouTube video",
-        "platform": "YouTube",
+        "title": info.get("title") or platform + " media",
+        "platform": platform,
         "author": info.get("uploader"),
         "thumbnail": thumbnail,
         "duration": info.get("duration"),
-        "kind": "video",
+        "kind": "video" if any(c["kind"] == "video" for c in choices) else "audio",
         "choices": choices,
     }
 
 
 def analyze(url, config):
-    url = validate_url(url)
+    url = resolve_url(url)
     try:
         with yt_dlp.YoutubeDL(options(config)) as ydl:
             return normalize(ydl.extract_info(url, download=False), url)

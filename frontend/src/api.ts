@@ -3,7 +3,10 @@ export type Choice = {
   kind: string;
   container: string;
   height: number | null;
+  width: number | null;
   fps: number | null;
+  audio_bitrate: number | null;
+  format_note: string | null;
   video_codec: string | null;
   audio_codec: string | null;
   has_audio: boolean;
@@ -13,6 +16,7 @@ export type Choice = {
   source_format_ids: string[];
 };
 export type Analysis = {
+  kind: "video" | "audio";
   title: string;
   platform: string;
   author: string | null;

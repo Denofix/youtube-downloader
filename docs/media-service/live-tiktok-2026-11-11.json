@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-11-11T11:03:54.832554+00:00",
+  "source": "https://www.tiktok.com/@sigmachaddeus/video/7170520270497680683",
+  "platform": null,
+  "publication_type": null,
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "failed",
+      "error": {
+        "code": "network_blocked",
+        "message": "The source blocked access from this server's network. Check source availability from the server or try another public item."
+      }
+    }
+  ]
+}

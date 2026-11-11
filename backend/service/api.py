@@ -17,7 +17,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import media
 from .config import Settings, settings
 from .errors import ServiceError
-from .sources import validate_url
+from .sources import THUMBNAIL_DOMAINS, platform_for, validate_url
 from .store import Store
 from .worker import disk_usage
 
@@ -122,8 +122,11 @@ def create_app(config: Settings = settings):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
+        thumbnail_origins = " ".join(
+            "https://*." + domain for domains in THUMBNAIL_DOMAINS.values() for domain in domains
+        )
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; img-src 'self' https://*.ytimg.com data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+            f"default-src 'self'; img-src 'self' {thumbnail_origins} data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
         )
         return response
 
@@ -147,10 +150,9 @@ def create_app(config: Settings = settings):
             "cookies_configured": bool(config.cookie_file),
             "platforms": [
                 {"name": "YouTube", "status": "implemented; see live verification report"},
-                *[
-                    {"name": p, "status": "planned"}
-                    for p in ("TikTok", "SoundCloud", "Instagram", "Pinterest")
-                ],
+                {"name": "SoundCloud", "status": "public tracks; see live verification report"},
+                {"name": "TikTok", "status": "individual videos; live verification pending"},
+                *[{"name": p, "status": "planned"} for p in ("Instagram", "Pinterest")],
             ],
             "presets": [
                 {
@@ -182,8 +184,9 @@ def create_app(config: Settings = settings):
 
     @app.post("/api/analyze", status_code=202)
     def analyze(body: AnalyzeRequest):
+        url = validate_url(body.url)
         return public_task(
-            store.create("analyze", "Analyze YouTube link", {"url": validate_url(body.url)})
+            store.create("analyze", f"Analyze {platform_for(url)} link", {"url": url})
         )
 
     @app.post("/api/downloads", status_code=202)

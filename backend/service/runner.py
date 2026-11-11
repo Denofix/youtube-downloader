@@ -48,10 +48,9 @@ def execute(task, store):
                     raise ServiceError(
                         "invalid_result", "The result is missing its selected audio stream."
                     )
-                if (
-                    payload["profile"] == "original"
-                    and choice.get("height")
-                    and metadata.get("height") != choice["height"]
+                if payload["profile"] == "original" and any(
+                    choice.get(dimension) and metadata.get(dimension) != choice[dimension]
+                    for dimension in ("width", "height")
                 ):
                     raise ServiceError(
                         "quality_mismatch",

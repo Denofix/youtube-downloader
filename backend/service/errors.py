@@ -17,6 +17,11 @@ def extractor_error(error: Exception) -> ServiceError:
             "tls_error",
             "The server could not verify the source certificate. Check its trusted certificates and proxy configuration.",
         )
+    if "ip address is blocked" in text or "blocked from accessing" in text:
+        return ServiceError(
+            "network_blocked",
+            "The source blocked access from this server's network. Check source availability from the server or try another public item.",
+        )
     if any(word in text for word in ("sign in", "login", "cookies", "private", "age-restricted")):
         return ServiceError(
             "access_required",

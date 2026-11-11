@@ -2,14 +2,14 @@
 
 A self-hosted media workspace evolving from Nord_Fillin's YouTube Downloader. Vue 3 + TypeScript, FastAPI, a separate worker, yt-dlp, FFmpeg, Pillow and a persistent SQLite queue.
 
-This first slice analyzes an individual YouTube video, binds the choice to actual source formats and queues downloads/MP3 extraction. It also uploads media, inspects contents, converts files and delivers verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
+Analyze an individual YouTube/TikTok video or public SoundCloud track, select actual source formats and queue an original download or MP3 extraction. Upload media, inspect contents, convert files and retrieve verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
 
-**Verification:** 45 restored backend/media/process tests pass; frontend typecheck, build and formatting pass. GitHub Actions also passed the real desktop/mobile browser scenarios and Docker Compose build/start checks. [Verification evidence](docs/media-service/verification.md) records the checked revisions. The owner also confirmed a real YouTube MP4 download/playback and MP3 workflows on 11 November 2026; see the [owner verification](docs/media-service/owner-verification-2026-11-11.json). The earlier failed [development-environment live report](docs/media-service/live-youtube-2026-11-11.json) is retained separately. Live confirmation covers the tested scenario, not every source or platform.
+**Verification:** 103 backend/media/process cases pass locally, including the new source contracts and real tool delivery against generated local media. A [live SoundCloud test](docs/media-service/live-soundcloud-2026-11-11.json) passed original M4A and MP3 delivery. TikTok's adapter is implemented, but its live test returned `network_blocked` from this server's IP; it still needs live confirmation on the owner's instance. See [stage 2 evidence and update steps](docs/media-service/stage-2.md). The owner's successful [YouTube MP4/playback and MP3 verification](docs/media-service/owner-verification-2026-11-11.json) and earlier [CI/browser/Compose evidence](docs/media-service/verification.md) are retained separately. Live confirmation covers the tested scenarios.
 
 ## Start
 
 ```bash
-git clone --branch feat/media-platform https://github.com/Denofix/youtube-downloader.git download-convert
+git clone --branch feat/soundcloud-tiktok https://github.com/Denofix/youtube-downloader.git download-convert
 cd download-convert
 cp .env.example .env
 docker compose up --build -d --wait
@@ -39,12 +39,13 @@ Actual running interface, captured by the [browser integration run](https://gith
 ## Current features
 
 - Download real source format IDs with resolution/FPS/codecs/audio/size details, track merging and explicit MP3 encoding. Missing formats require fresh analysis; no silent quality fallback.
+- Accept public SoundCloud track permalinks and TikTok video permalinks, plus bounded same-platform share redirects. SoundCloud previews are rejected; TikTok MP3 comes from the selected video, not a separate potentially different music track.
 - Convert compatible MP4/WebM/MKV/MOV, MP3/M4A/WAV/FLAC/OGG, GIF clips, JPG/PNG/WebP and animated GIF to video. Options depend on detected contents and installed encoders.
 - Persist queued/running/completed/failed/cancelled tasks, separate operations and real per-operation progress. Cancel, retry, recover after restart, reuse a result and show file expiry.
 - Default limits: one processing job, 512 MiB per file, 5 GiB media storage, 30 minutes per task, 24-hour results. Configure owner values in `.env`.
 - Graphite/orange Download, Convert, Tasks and Settings pages, keyboard focus/labels, mobile layout and worker diagnostics.
 
-TikTok, SoundCloud, Instagram, Pinterest, photo/carousel selection, ZIP delivery and batch upload UI are planned. The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
+Instagram, Pinterest, photo/carousel selection, ZIP delivery and batch upload UI are planned. TikTok live verification is pending. The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
 
 ## Architecture
 

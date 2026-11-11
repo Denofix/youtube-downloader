@@ -62,7 +62,17 @@ function syncHash() {
   if (tabs.includes(next)) tab.value = next;
 }
 function choiceLabel(c: Choice) {
-  return `${c.kind === "video" ? (c.height ? c.height + "p" : "Video") : "Audio"}${c.fps ? " · " + c.fps + " fps" : ""} · ${c.container.toUpperCase()} · ${c.has_audio ? "with audio" : "no audio"}`;
+  const details = [
+    c.kind === "video" ? (c.height ? c.height + "p" : "Video") : "Audio",
+    c.fps ? c.fps + " fps" : null,
+    c.container.toUpperCase(),
+    c.kind === "audio" && c.audio_bitrate ? c.audio_bitrate + " kbps" : null,
+    c.kind === "video" ? (c.has_audio ? "with audio" : "no audio") : null,
+    c.video_codec || c.audio_codec,
+    c.format_note,
+    c.source_format_ids.join(" + "),
+  ];
+  return details.filter(Boolean).join(" · ");
 }
 function useAnalysis(task: Task) {
   if (!task.result?.choices || task.expired) {
@@ -72,7 +82,10 @@ function useAnalysis(task: Task) {
   analysis.value = task.result as Analysis;
   analysisId.value = task.id;
   const ordered = [...analysis.value.choices].sort(
-    (a, b) => (b.height || 0) - (a.height || 0),
+    (a, b) =>
+      (b.height || 0) - (a.height || 0) ||
+      (b.fps || 0) - (a.fps || 0) ||
+      (b.audio_bitrate || 0) - (a.audio_bitrate || 0),
   );
   choiceId.value = (ordered.find((c) => c.has_audio) || ordered[0])?.id || "";
   profile.value = "original";
@@ -297,24 +310,24 @@ onUnmounted(() => {
         <span class="eyebrow">YOUR MEDIA. YOUR WORKSPACE.</span>
         <h1>A link. A format.<br /><span>Make it yours.</span></h1>
         <p>
-          Download a video or save just the audio.<br />Choose what you need.
-          Keep the quality you picked.
+          Download a video or save a track.<br />Choose what you need. Keep the
+          quality you picked.
         </p>
       </div>
       <section class="workspace" aria-label="Download media">
         <div class="panel-heading">
           <span class="step">01</span>
           <h2>Start with a link</h2>
-          <span class="badge">YouTube</span>
+          <span class="badge">Video & audio</span>
         </div>
         <form class="link-form" @submit.prevent="analyze">
-          <label class="sr-only" for="source-url">YouTube video URL</label>
+          <label class="sr-only" for="source-url">Media URL</label>
           <div class="url-field">
             <Icon name="link" /><input
               id="source-url"
               v-model="url"
               type="url"
-              placeholder="Paste a YouTube video or Shorts link"
+              placeholder="Paste a YouTube, SoundCloud or TikTok link"
               autocomplete="url"
               required
               :disabled="!!analyzingId"
@@ -329,8 +342,8 @@ onUnmounted(() => {
           </button>
         </form>
         <p class="help">
-          <Icon name="clock" :size="14" />One video at a time. Available formats
-          come directly from the source.
+          <Icon name="clock" :size="14" />YouTube videos & Shorts, SoundCloud
+          tracks and TikTok videos. One item at a time.
         </p>
         <div v-if="analyzingId" class="loading-box" role="status">
           <span class="spinner" />{{
@@ -356,7 +369,7 @@ onUnmounted(() => {
             <img
               v-if="analysis.thumbnail"
               :src="analysis.thumbnail"
-              alt="Source video thumbnail"
+              alt="Source media artwork"
               referrerpolicy="no-referrer"
             />
             <div v-else class="thumbnail-placeholder">
@@ -419,6 +432,14 @@ onUnmounted(() => {
                       .join(" / ")
                   }}
                 </dd>
+              </div>
+              <div v-if="choice.width && choice.height">
+                <dt>Source dimensions</dt>
+                <dd>{{ choice.width }} × {{ choice.height }}</dd>
+              </div>
+              <div v-if="choice.audio_bitrate">
+                <dt>Source audio bitrate</dt>
+                <dd>{{ choice.audio_bitrate }} kbps</dd>
               </div>
             </dl>
             <label v-if="profile === 'mp3'"
