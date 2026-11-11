@@ -4,7 +4,7 @@ This is the first web-service slice, not completion of the full specification. S
 
 | Source | Implemented in this build | Controlled verification | Live status |
 | --- | --- | --- | --- |
-| YouTube individual video / Shorts / finished-live permalink | Metadata, exact-format video/audio, lossless track merging and MP3 extraction | Real yt-dlp against a generated local HTTP media source; exact quality, merge/audio and missing-format rejection pass | Real metadata passed; original/MP3 retrieval failed with invalid_source_media in this environment; see live-youtube-2026-11-11.json |
+| YouTube individual video / Shorts / finished-live permalink | Metadata, exact-format video/audio, lossless track merging and MP3 extraction | Real yt-dlp against a generated local HTTP media source; exact quality, merge/audio and missing-format rejection pass | Owner confirmed a real 1080p MP4 download/playback and MP3 workflows on 11 November 2026; see owner-verification-2026-11-11.json. The earlier failed development-environment test is retained separately. |
 | TikTok | Planned | None | Not tested |
 | SoundCloud | Planned | None | Not tested |
 | Instagram | Planned | None | Not tested |
@@ -25,4 +25,4 @@ Other target platforms return `platform_planned`. Ongoing streams and collection
 
 Presets expose actual behavior: Original uses exact source streams; Audio MP3 has an explicit bitrate; Smaller Video encodes H.264 CRF 25 or VP9 CRF 34 with no guaranteed size reduction; GIF Clip has a maximum 15 seconds, 24 FPS and 720-pixel width. Increasing bitrate or resolution does not restore detail.
 
-The restored backend test suite passed locally with **45 tests**. GitHub Actions also passed desktop/mobile browser scenarios, real MP3 retrieval/GIF/WebP conversion, and Docker Compose build/start. Actual screenshots are captured as artifacts. These controlled checks do not establish real YouTube file access; see verification.md and the dated live report.
+The restored backend test suite passed locally with **45 tests**. GitHub Actions also passed desktop/mobile browser scenarios, real MP3 retrieval/GIF/WebP conversion, and Docker Compose build/start. Actual screenshots are captured as artifacts. Controlled CI checks remain distinct from the owner's successful real YouTube test; see verification.md and the separate dated reports. Only the tested live scenario is confirmed.

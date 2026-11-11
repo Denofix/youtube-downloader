@@ -4,7 +4,7 @@ A self-hosted media workspace evolving from Nord_Fillin's YouTube Downloader. Vu
 
 This first slice analyzes an individual YouTube video, binds the choice to actual source formats and queues downloads/MP3 extraction. It also uploads media, inspects contents, converts files and delivers verified results. The complete five-platform target remains in the [specification](docs/media-service/specification.md).
 
-**Verification:** 45 restored backend/media/process tests pass; frontend typecheck, build and formatting pass. GitHub Actions also passed the real desktop/mobile browser scenarios and Docker Compose build/start checks. [Verification evidence](docs/media-service/verification.md) records the checked revisions. Real YouTube metadata analysis passed, but file retrieval returned invalid media in this environment; see the [live report](docs/media-service/live-youtube-2026-11-11.json). The first live download remains a separate acceptance gate.
+**Verification:** 45 restored backend/media/process tests pass; frontend typecheck, build and formatting pass. GitHub Actions also passed the real desktop/mobile browser scenarios and Docker Compose build/start checks. [Verification evidence](docs/media-service/verification.md) records the checked revisions. The owner also confirmed a real YouTube MP4 download/playback and MP3 workflows on 11 November 2026; see the [owner verification](docs/media-service/owner-verification-2026-11-11.json). The earlier failed [development-environment live report](docs/media-service/live-youtube-2026-11-11.json) is retained separately. Live confirmation covers the tested scenario, not every source or platform.
 
 ## Start
 
@@ -92,7 +92,7 @@ npm --prefix frontend run build
 
 [Operations](docs/media-service/operations.md) covers real browser screenshots, opt-in live tests, owner cookies, trusted certificates, updates, backup and recovery. CI runs the controlled suite and builds the container stack; review actual run results rather than treating the workflow file itself as a pass.
 
-Next gates: real link-to-file YouTube verification and browser/Compose runtime verification. Then expand publication types and sources one at a time. Light theme, batch uploads, subscriptions, channel/profile scanning, media library and public multi-user hosting remain later stages.
+The first owner-tested download/conversion and browser/Compose gates are confirmed. Next, expand publication types and sources one at a time. Light theme, batch uploads, subscriptions, channel/profile scanning, media library and public multi-user hosting remain later stages.
 
 ## References & Inspiration
 
