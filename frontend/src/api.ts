@@ -16,14 +16,30 @@ export type Choice = {
   size_kind: string;
   source_format_ids: string[];
 };
+export type PhotoItem = {
+  id: string;
+  position: number;
+  width: number;
+  height: number;
+  format: string;
+  size: number;
+  preview_asset_id: string;
+};
+export type PhotoFile = Omit<PhotoItem, "id"> & {
+  item_id: string;
+  asset_id: string;
+  name: string;
+};
 export type Analysis = {
-  kind: "video" | "audio";
+  kind: "video" | "audio" | "photos";
   title: string;
   platform: string;
   author: string | null;
   thumbnail: string | null;
   duration: number | null;
   choices: Choice[];
+  items?: PhotoItem[];
+  item_count?: number;
 };
 export type Task = {
   id: string;
@@ -41,6 +57,8 @@ export type Task = {
     | (Partial<Analysis> & {
         asset_id?: string;
         preview?: boolean;
+        files?: PhotoFile[];
+        archive_asset_id?: string;
         timings?: { total_seconds: number; stages: Record<string, number> };
       })
     | null;

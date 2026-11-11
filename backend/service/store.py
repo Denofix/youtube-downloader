@@ -222,7 +222,9 @@ class Store:
             expired = db.execute(
                 """SELECT * FROM assets a WHERE expires_at < ? AND NOT EXISTS (
                 SELECT 1 FROM tasks t WHERE t.state IN ('queued','running')
-                AND json_extract(t.payload,'$.asset_id')=a.id)""",
+                AND (json_extract(t.payload,'$.asset_id')=a.id OR EXISTS (
+                    SELECT 1 FROM json_each(t.payload,'$.asset_ids') refs WHERE refs.value=a.id
+                )))""",
                 (now,),
             ).fetchall()
             for row in expired:

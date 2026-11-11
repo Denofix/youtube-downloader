@@ -34,6 +34,7 @@ const analyzingId = ref(""),
   inspectingId = ref(""),
   analysisId = ref("");
 const analysis = ref<Analysis | null>(null),
+  photoIds = ref<string[]>([]),
   choiceId = ref(""),
   profile = ref("original"),
   bitrate = ref(192);
@@ -88,6 +89,14 @@ function useAnalysis(task: Task) {
     return;
   }
   const incoming = task.result as Analysis;
+  analysisId.value = task.id;
+  if (incoming.kind === "photos") {
+    analysis.value = incoming;
+    photoIds.value = incoming.items?.map((item) => item.id) || [];
+    choiceId.value = "";
+    profile.value = "original";
+    return;
+  }
   analysis.value =
     incoming.platform === "TikTok"
       ? {
@@ -188,15 +197,27 @@ async function analyze() {
 }
 async function download() {
   await action(async () => {
-    await post("/downloads", {
-      analysis_id: analysisId.value,
-      choice_id: choiceId.value,
-      profile: profile.value,
-      bitrate: bitrate.value,
-    });
+    if (analysis.value?.kind === "photos") {
+      await post("/photo-downloads", {
+        analysis_id: analysisId.value,
+        item_ids: photoIds.value,
+      });
+    } else
+      await post("/downloads", {
+        analysis_id: analysisId.value,
+        choice_id: choiceId.value,
+        profile: profile.value,
+        bitrate: bitrate.value,
+      });
     navigate("tasks");
     await refresh();
     feedback.value = "Download added to the queue.";
+  });
+}
+async function convertPhoto(id: string) {
+  await action(async () => {
+    await loadAsset(id);
+    navigate("convert");
   });
 }
 async function upload(files: FileList | File[] | null) {
@@ -356,7 +377,7 @@ onUnmounted(() => {
         <div class="panel-heading">
           <span class="step">01</span>
           <h2>Start with a link</h2>
-          <span class="badge">Video & audio</span>
+          <span class="badge">Video · audio · photos</span>
         </div>
         <form class="link-form" @submit.prevent="analyze">
           <label class="sr-only" for="source-url">Media URL</label>
@@ -381,7 +402,7 @@ onUnmounted(() => {
         </form>
         <p class="help">
           <Icon name="clock" :size="14" />YouTube videos & Shorts, SoundCloud
-          tracks and TikTok videos. One item at a time.
+          tracks and TikTok videos or photo posts. One post at a time.
         </p>
         <div v-if="analyzingId" class="loading-box" role="status">
           <span class="spinner" />{{
@@ -410,6 +431,11 @@ onUnmounted(() => {
               alt="Source media artwork"
               referrerpolicy="no-referrer"
             />
+            <img
+              v-else-if="analysis.items?.[0]?.preview_asset_id"
+              :src="`/api/assets/${analysis.items[0].preview_asset_id}/preview`"
+              alt="Photo post preview"
+            />
             <div v-else class="thumbnail-placeholder">
               <Icon name="file" :size="32" />
             </div>
@@ -418,103 +444,170 @@ onUnmounted(() => {
               <h3>{{ analysis.title }}</h3>
               <p>
                 {{ analysis.author || "Creator unknown" }}
-                <span class="dot">·</span> {{ duration(analysis.duration) }}
+                <span class="dot">·</span>
+                {{
+                  analysis.kind === "photos"
+                    ? `${analysis.item_count} photos`
+                    : duration(analysis.duration)
+                }}
               </p>
             </div>
           </div>
-          <div class="format-grid">
-            <label
-              >Source format<select v-model="choiceId">
-                <option
-                  v-for="item in analysis.choices"
-                  :key="item.id"
-                  :value="item.id"
+          <template v-if="analysis.kind === 'photos'">
+            <div class="photo-heading">
+              <h3>Choose your photos</h3>
+              <div class="photo-tools">
+                <button
+                  class="text-button"
+                  @click="
+                    photoIds = analysis.items?.map((item) => item.id) || []
+                  "
                 >
-                  {{ choiceLabel(item) }}
-                </option>
-              </select></label
-            ><label
-              >Output preset<select v-model="profile">
-                <option
-                  v-if="analysis.platform === 'TikTok'"
-                  value="compatible"
-                >
-                  Compatible MP4 · H.264 + AAC
-                </option>
-                <option v-else value="original">
-                  Original · no re-encoding
-                </option>
-                <option value="mp3" :disabled="!choice?.has_audio">
-                  Audio MP3 · re-encode
-                </option>
-              </select></label
-            >
-          </div>
-          <div v-if="choice" class="format-summary">
-            <span
-              >{{ profile === "compatible" ? "Source: " : ""
-              }}{{ choice.size_kind === "approximate" ? "About " : ""
-              }}{{ bytes(choice.size) }}</span
-            ><span>{{
-              profile === "mp3"
-                ? "Audio encoding required"
-                : profile === "compatible"
-                  ? "Output: MP4 · H.264 + AAC"
-                  : choice.operation === "merge"
-                    ? "Separate tracks · lossless merge"
-                    : "Direct source download"
-            }}</span>
-          </div>
-          <p v-if="analysis.platform === 'TikTok'" class="help">
-            Sources with a reported watermark are excluded. Video delivery keeps
-            the selected resolution; HEVC is re-encoded for compatible playback.
-            Output size may change.
-          </p>
-          <details class="advanced">
-            <summary>Advanced · source details & encoding</summary>
-            <dl v-if="choice">
-              <div>
-                <dt>Source format IDs</dt>
-                <dd>{{ choice.source_format_ids.join(" + ") }}</dd>
+                  Select all
+                </button>
+                <button class="text-button" @click="photoIds = []">
+                  Clear selection
+                </button>
               </div>
-              <div>
-                <dt>Source codecs</dt>
-                <dd>
-                  {{
-                    [choice.video_codec, choice.audio_codec]
-                      .filter(Boolean)
-                      .join(" / ")
-                  }}
-                </dd>
-              </div>
-              <div v-if="choice.width && choice.height">
-                <dt>Source dimensions</dt>
-                <dd>{{ choice.width }} × {{ choice.height }}</dd>
-              </div>
-              <div v-if="choice.audio_bitrate">
-                <dt>Source audio bitrate</dt>
-                <dd>{{ choice.audio_bitrate }} kbps</dd>
-              </div>
-            </dl>
-            <label v-if="profile === 'mp3'"
-              >MP3 output bitrate<select v-model="bitrate">
-                <option :value="128">128 kbps</option>
-                <option :value="192">192 kbps</option>
-                <option :value="320">320 kbps</option>
-              </select></label
-            >
+            </div>
             <p class="help">
-              A higher output bitrate does not restore detail missing from the
-              source.
+              Verified original images, with no re-encoding. Multiple selected
+              photos also include a ZIP.
             </p>
-          </details>
-          <button
-            class="primary wide"
-            :disabled="busy || !choice"
-            @click="download"
-          >
-            <Icon name="download" :size="18" />Add download to queue
-          </button>
+            <div class="photo-grid">
+              <label
+                v-for="item in analysis.items"
+                :key="item.id"
+                :class="[
+                  'photo-option',
+                  { selected: photoIds.includes(item.id) },
+                ]"
+              >
+                <input
+                  v-model="photoIds"
+                  type="checkbox"
+                  :value="item.id"
+                  :aria-label="`Select photo ${item.position}`"
+                />
+                <img
+                  :src="`/api/assets/${item.preview_asset_id}/preview`"
+                  :alt="`Photo ${item.position} preview`"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span
+                  ><strong>Photo {{ item.position }}</strong
+                  ><br />{{ item.width }} × {{ item.height }} ·
+                  {{ item.format.toUpperCase() }}<br />{{
+                    bytes(item.size)
+                  }}</span
+                >
+              </label>
+            </div>
+            <button
+              class="primary wide"
+              :disabled="busy || !photoIds.length"
+              @click="download"
+            >
+              <Icon name="download" :size="18" />Add selected photos to queue
+              ({{ photoIds.length }})
+            </button>
+          </template>
+          <template v-else>
+            <div class="format-grid">
+              <label
+                >Source format<select v-model="choiceId">
+                  <option
+                    v-for="item in analysis.choices"
+                    :key="item.id"
+                    :value="item.id"
+                  >
+                    {{ choiceLabel(item) }}
+                  </option>
+                </select></label
+              ><label
+                >Output preset<select v-model="profile">
+                  <option
+                    v-if="analysis.platform === 'TikTok'"
+                    value="compatible"
+                  >
+                    Compatible MP4 · H.264 + AAC
+                  </option>
+                  <option v-else value="original">
+                    Original · no re-encoding
+                  </option>
+                  <option value="mp3" :disabled="!choice?.has_audio">
+                    Audio MP3 · re-encode
+                  </option>
+                </select></label
+              >
+            </div>
+            <div v-if="choice" class="format-summary">
+              <span
+                >{{ profile === "compatible" ? "Source: " : ""
+                }}{{ choice.size_kind === "approximate" ? "About " : ""
+                }}{{ bytes(choice.size) }}</span
+              ><span>{{
+                profile === "mp3"
+                  ? "Audio encoding required"
+                  : profile === "compatible"
+                    ? "Output: MP4 · H.264 + AAC"
+                    : choice.operation === "merge"
+                      ? "Separate tracks · lossless merge"
+                      : "Direct source download"
+              }}</span>
+            </div>
+            <p v-if="analysis.platform === 'TikTok'" class="help">
+              Sources with a reported watermark are excluded. Video delivery
+              keeps the selected resolution; HEVC is re-encoded for compatible
+              playback. Output size may change.
+            </p>
+            <details class="advanced">
+              <summary>Advanced · source details & encoding</summary>
+              <dl v-if="choice">
+                <div>
+                  <dt>Source format IDs</dt>
+                  <dd>{{ choice.source_format_ids.join(" + ") }}</dd>
+                </div>
+                <div>
+                  <dt>Source codecs</dt>
+                  <dd>
+                    {{
+                      [choice.video_codec, choice.audio_codec]
+                        .filter(Boolean)
+                        .join(" / ")
+                    }}
+                  </dd>
+                </div>
+                <div v-if="choice.width && choice.height">
+                  <dt>Source dimensions</dt>
+                  <dd>{{ choice.width }} × {{ choice.height }}</dd>
+                </div>
+                <div v-if="choice.audio_bitrate">
+                  <dt>Source audio bitrate</dt>
+                  <dd>{{ choice.audio_bitrate }} kbps</dd>
+                </div>
+              </dl>
+              <label v-if="profile === 'mp3'"
+                >MP3 output bitrate<select v-model="bitrate">
+                  <option :value="128">128 kbps</option>
+                  <option :value="192">192 kbps</option>
+                  <option :value="320">320 kbps</option>
+                </select></label
+              >
+              <p class="help">
+                A higher output bitrate does not restore detail missing from the
+                source.
+              </p>
+            </details>
+            <button
+              class="primary wide"
+              :disabled="busy || !choice"
+              @click="download"
+            >
+              <Icon name="download" :size="18" />Add download to queue
+            </button>
+          </template>
         </template>
       </section>
       <div class="feature-strip">
@@ -822,7 +915,20 @@ onUnmounted(() => {
                     class="secondary small"
                     @click="inspectTask(task)"
                   >
-                    View formats<Icon name="arrow" :size="14" /></button
+                    {{
+                      task.result?.kind === "photos"
+                        ? "Choose photos"
+                        : "View formats"
+                    }}<Icon name="arrow" :size="14" /></button
+                  ><template v-else-if="task.result?.files">
+                    <a
+                      v-if="task.result.archive_asset_id"
+                      class="primary small"
+                      :href="`/api/assets/${task.result.archive_asset_id}/file`"
+                      ><Icon name="download" :size="15" />Download ZIP ({{
+                        task.result.files.length
+                      }})</a
+                    > </template
                   ><template v-else-if="task.result?.asset_id"
                     ><a
                       v-if="task.kind !== 'inspect'"
@@ -853,6 +959,40 @@ onUnmounted(() => {
                 >
                   {{ task.kind === "download" ? "Analyze again" : "Retry" }}
                 </button>
+              </div>
+              <div
+                v-if="task.result?.files && !task.expired"
+                class="photo-results"
+              >
+                <figure
+                  v-for="item in task.result.files"
+                  :key="item.asset_id"
+                  class="photo-result"
+                >
+                  <img
+                    :src="`/api/assets/${item.preview_asset_id}/preview`"
+                    :alt="`Downloaded photo ${item.position}`"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <figcaption>
+                    Photo {{ item.position }} · {{ item.width }} ×
+                    {{ item.height }}
+                  </figcaption>
+                  <div class="photo-result-actions">
+                    <a
+                      class="secondary small"
+                      :href="`/api/assets/${item.asset_id}/file`"
+                      >Download photo {{ item.position }}</a
+                    ><button
+                      class="secondary small"
+                      :disabled="busy"
+                      @click="convertPhoto(item.asset_id)"
+                    >
+                      Convert photo {{ item.position }}
+                    </button>
+                  </div>
+                </figure>
               </div>
             </div>
           </article>

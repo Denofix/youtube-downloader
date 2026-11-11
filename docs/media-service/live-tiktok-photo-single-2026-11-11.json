@@ -1,0 +1,64 @@
+{
+  "checked_at": "2026-11-11T20:02:02.834288+00:00",
+  "source": "https://www.tiktok.com/@hullcity/photo/7557376330036153622",
+  "checks": [
+    {
+      "scenario": "photo analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "all local previews",
+      "state": "completed",
+      "count": 1
+    },
+    {
+      "scenario": "selected original photos",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "retained photo to PNG",
+      "state": "completed",
+      "error": null
+    }
+  ],
+  "canonical_source": "https://www.tiktok.com/@hullcity/photo/7557376330036153622",
+  "item_count": 1,
+  "analysis_timings": {
+    "total_seconds": 18.964,
+    "stages": {
+      "starting": 0.0,
+      "analyzing": 12.092,
+      "downloading": 6.59,
+      "verifying": 0.282
+    }
+  },
+  "download_timings": {
+    "total_seconds": 0.248,
+    "stages": {
+      "starting": 0.0,
+      "preparing": 0.248
+    }
+  },
+  "files": [
+    {
+      "position": 1,
+      "format": "JPEG",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 189999,
+      "sha256": "41f4f6a7b6a4a5afdb85dad88a198a8f5c1925ce51f537354155aea81c215559",
+      "http_status": 200
+    }
+  ],
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  }
+}
