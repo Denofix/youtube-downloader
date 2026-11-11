@@ -11,7 +11,7 @@ A fresh shallow verification clone of commit dcc87735bef1b35663fd6fda76db586303b
 - verify: locked dependency/export checks, backend tests, frontend checks and actual browser integration.
 - containers: Docker Compose configuration, image build, API/worker startup, API health/frontend HTTP checks and Node runtime inside the worker.
 
-The browser used generated fixtures to exercise keyboard focus, initial/error states, desktop/mobile overflow, upload/inspection, actual MP3 download verified by ffprobe, GIF preview, WebP conversion and history after reload. Artifact 13835000310 contains the actual screenshots, not design mockups. A subsequent small control-border contrast correction is checked by the following CI run; backend behavior is unchanged.
+The browser used generated fixtures to exercise keyboard focus, initial/error states, desktop/mobile overflow, upload/inspection, actual MP3 download verified by ffprobe, GIF preview, WebP conversion and history after reload. Artifact 13835000310 contains the actual screenshots, not design mockups. [Run 42974101607](https://github.com/Denofix/youtube-downloader/actions/runs/42974101607) repeats these gates after the control-border contrast correction at commit f18cff009cbb960064a8c0a388955d0a096d56d5. Its actual screenshots (artifact 13833829847, ZIP SHA256 81e9f0e18621419bc823227063a085bc69b50d4a73467f682f6a20ca3e0bfc8a) are saved in docs/screenshots and displayed by README.
 
 ## Contrast
 

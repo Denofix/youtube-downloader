@@ -17,6 +17,25 @@ docker compose up --build -d --wait
 
 Open **http://localhost:8080**. Both API and worker must run. The named `media-data` volume keeps files and SQLite state. The default listener is loopback for a private owner-operated instance. Public hosting is a separate milestone. On Windows use Docker Desktop; in a Linux VM, view localhost from that VM or use an SSH port forward from the host.
 
+## Screenshots
+
+Actual running interface, captured by the [browser integration run](https://github.com/Denofix/youtube-downloader/actions/runs/42974101607). Conversion/history examples use generated local test media.
+
+![Download workspace](docs/screenshots/download-desktop.png)
+
+<details>
+<summary>Conversion, history and mobile layouts</summary>
+
+![Conversion workspace](docs/screenshots/convert-desktop.png)
+
+![Task history](docs/screenshots/tasks-desktop.png)
+
+| Mobile download | Mobile tasks |
+| --- | --- |
+| ![Mobile download](docs/screenshots/download-mobile.png) | ![Mobile tasks](docs/screenshots/tasks-mobile.png) |
+
+</details>
+
 ## Current features
 
 - Download real source format IDs with resolution/FPS/codecs/audio/size details, track merging and explicit MP3 encoding. Missing formats require fresh analysis; no silent quality fallback.
