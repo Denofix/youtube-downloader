@@ -1,0 +1,43 @@
+x-common: &common
+  image: download-convert:local
+  build: .
+  init: true
+  restart: unless-stopped
+  environment:
+    DATA_DIR: /data
+    MAX_FILE_BYTES: ${MAX_FILE_BYTES:-536870912}
+    MAX_STORAGE_BYTES: ${MAX_STORAGE_BYTES:-5368709120}
+    RESULT_TTL_SECONDS: ${RESULT_TTL_SECONDS:-86400}
+    JOB_TIMEOUT_SECONDS: ${JOB_TIMEOUT_SECONDS:-1800}
+    ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+    COOKIE_FILE: ${COOKIE_FILE:-}
+    YTDLP_USE_SYSTEM_CA: ${YTDLP_USE_SYSTEM_CA:-0}
+  volumes:
+    - media-data:/data
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  pids_limit: 192
+  mem_limit: 2g
+  cpus: 2
+
+services:
+  api:
+    <<: *common
+    ports:
+      - "127.0.0.1:${PORT:-8080}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 20s
+      timeout: 8s
+      retries: 3
+  worker:
+    <<: *common
+    command: ["python", "-m", "service.worker"]
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  media-data:
