@@ -1,5 +1,6 @@
 import resource
 import sys
+import time
 
 from . import media, sources
 from .errors import ServiceError
@@ -10,8 +11,15 @@ def execute(task, store):
     task_id, payload, config = task["id"], task["payload"], store.config
     directory = config.data_dir / "files" / task_id
     directory.mkdir(exist_ok=True)
+    started = phase_started = time.monotonic()
+    phase, stages = "starting", {}
 
     def report(operation, progress=None, speed=None, eta=None):
+        nonlocal phase, phase_started
+        if operation != phase:
+            now = time.monotonic()
+            stages[phase] = stages.get(phase, 0) + now - phase_started
+            phase, phase_started = operation, now
         store.progress(task_id, operation, progress, speed, eta)
 
     try:
@@ -33,35 +41,47 @@ def execute(task, store):
                     raise ServiceError(
                         "invalid_format", "Analyze again and select a current source format."
                     )
+                profile = payload["profile"]
+                # Also apply the current policy to tasks/analyses created by older UI versions.
+                if analysis.get("platform") == "TikTok" and profile != "mp3":
+                    profile = "compatible"
                 path = sources.download(
                     analysis,
                     choice,
-                    payload["profile"],
+                    profile,
                     payload["bitrate"],
                     directory,
                     config,
                     report,
                 )
                 report("verifying")
-                metadata = media.verify(path)
+                # Compatible delivery decodes while encoding with -xerror, then
+                # fully verifies the final MP4. Avoid an extra full input decode.
+                metadata = media.probe(path) if profile == "compatible" else media.verify(path)
                 if choice["has_audio"] and not metadata["has_audio"]:
                     raise ServiceError(
                         "invalid_result", "The result is missing its selected audio stream."
                     )
-                if (
-                    payload["profile"] == "original"
-                    and choice.get("height")
-                    and metadata.get("height") != choice["height"]
+                if profile != "mp3" and any(
+                    choice.get(dimension) and metadata.get(dimension) != choice[dimension]
+                    for dimension in ("width", "height")
                 ):
                     raise ServiceError(
                         "quality_mismatch",
                         "The result does not match the selected resolution. Analyze again.",
                     )
+                if profile == "compatible":
+                    report("converting")
+                    original = path
+                    path, metadata = media.compatible_video(original, metadata, directory)
+                    original.unlink()
+                    report("verifying")
+                quality = sources.quality_height(choice)
                 descriptor = (
                     f"MP3 {payload['bitrate']}kbps"
-                    if payload["profile"] == "mp3"
-                    else str(choice.get("height") or "audio")
-                    + ("p" if choice.get("height") else "")
+                    if profile == "mp3"
+                    else (str(quality) + "p" if quality else choice.get("kind", "media"))
+                    + (" H264" if profile == "compatible" else "")
                 )
                 name = media.safe_name(analysis["title"], path.suffix, descriptor)
             elif task["kind"] == "convert":
@@ -80,6 +100,16 @@ def execute(task, store):
                 "asset_id": store.add_asset(path, name, metadata, task_id),
                 "preview": metadata["kind"] in {"image", "animation"},
             }
+            if task["kind"] == "download":
+                result["source_format_ids"] = choice.get(
+                    "resolved_source_format_ids", choice["source_format_ids"]
+                )
+        now = time.monotonic()
+        stages[phase] = stages.get(phase, 0) + now - phase_started
+        result["timings"] = {
+            "total_seconds": round(now - started, 3),
+            "stages": {name: round(seconds, 3) for name, seconds in stages.items()},
+        }
         if not store.finish(task_id, "completed", result=result):
             store.discard_task_files(task_id)
     except ServiceError as error:

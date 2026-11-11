@@ -25,6 +25,7 @@ const tasks = ref<Task[]>([]),
   server = ref<ServerSettings | null>(null);
 const url = ref(""),
   error = ref(""),
+  errorCode = ref(""),
   feedback = ref(""),
   busy = ref(false),
   connected = ref(false),
@@ -55,6 +56,7 @@ function navigate(target: Tab) {
   tab.value = target;
   location.hash = target;
   error.value = "";
+  errorCode.value = "";
   feedback.value = "";
 }
 function syncHash() {
@@ -62,20 +64,61 @@ function syncHash() {
   if (tabs.includes(next)) tab.value = next;
 }
 function choiceLabel(c: Choice) {
-  return `${c.kind === "video" ? (c.height ? c.height + "p" : "Video") : "Audio"}${c.fps ? " · " + c.fps + " fps" : ""} · ${c.container.toUpperCase()} · ${c.has_audio ? "with audio" : "no audio"}`;
+  const quality =
+    c.quality_height ??
+    (c.width && c.height ? Math.min(c.width, c.height) : c.height);
+  const details = [
+    c.kind === "video" ? (quality ? quality + "p" : "Video") : "Audio",
+    c.kind === "video" && c.width && c.height
+      ? `${c.width} × ${c.height}`
+      : null,
+    c.fps ? c.fps + " fps" : null,
+    c.container.toUpperCase(),
+    c.kind === "audio" && c.audio_bitrate ? c.audio_bitrate + " kbps" : null,
+    c.kind === "video" ? (c.has_audio ? "with audio" : "no audio") : null,
+    c.video_codec || c.audio_codec,
+    c.format_note,
+    c.source_format_ids.join(" + "),
+  ];
+  return details.filter(Boolean).join(" · ");
 }
 function useAnalysis(task: Task) {
   if (!task.result?.choices || task.expired) {
     error.value = "This analysis has expired. Analyze again.";
     return;
   }
-  analysis.value = task.result as Analysis;
+  const incoming = task.result as Analysis;
+  analysis.value =
+    incoming.platform === "TikTok"
+      ? {
+          ...incoming,
+          choices: incoming.choices.filter(
+            (c) =>
+              c.has_audio &&
+              !c.format_note?.toLowerCase().includes("watermarked") &&
+              !c.source_format_ids.some((id) =>
+                /^download(?:_addr)?(?:-\d+)?$/.test(id),
+              ),
+          ),
+        }
+      : incoming;
+  if (!analysis.value.choices.length) {
+    analysis.value = null;
+    error.value =
+      "Analyze this TikTok link again to refresh compatible sources without a reported watermark.";
+    errorCode.value = "analysis_refresh_required";
+    return;
+  }
   analysisId.value = task.id;
   const ordered = [...analysis.value.choices].sort(
-    (a, b) => (b.height || 0) - (a.height || 0),
+    (a, b) =>
+      (b.height || 0) - (a.height || 0) ||
+      (b.fps || 0) - (a.fps || 0) ||
+      (b.audio_bitrate || 0) - (a.audio_bitrate || 0),
   );
   choiceId.value = (ordered.find((c) => c.has_audio) || ordered[0])?.id || "";
-  profile.value = "original";
+  profile.value =
+    analysis.value.platform === "TikTok" ? "compatible" : "original";
 }
 async function loadAsset(id: string) {
   asset.value = await api<Asset>("/assets/" + id);
@@ -112,7 +155,10 @@ async function refresh() {
           }
         }
       }
-      if (task.error) error.value = task.error.message;
+      if (task.error) {
+        error.value = task.error.message;
+        errorCode.value = task.error.code;
+      }
     }
   } catch {
     connected.value = false;
@@ -123,6 +169,7 @@ async function refresh() {
 async function action(work: () => Promise<void>) {
   busy.value = true;
   error.value = "";
+  errorCode.value = "";
   feedback.value = "";
   try {
     await work();
@@ -277,7 +324,11 @@ onUnmounted(() => {
   </header>
   <main id="main" tabindex="-1">
     <div v-if="error" class="notice error" role="alert">
-      <span><strong>Unable to continue</strong>{{ error }}</span
+      <span
+        ><strong>Unable to continue</strong>{{ error
+        }}<br v-if="errorCode" /><small v-if="errorCode"
+          >Error code: {{ errorCode }}</small
+        ></span
       ><button
         class="icon-button"
         aria-label="Dismiss error"
@@ -297,24 +348,24 @@ onUnmounted(() => {
         <span class="eyebrow">YOUR MEDIA. YOUR WORKSPACE.</span>
         <h1>A link. A format.<br /><span>Make it yours.</span></h1>
         <p>
-          Download a video or save just the audio.<br />Choose what you need.
-          Keep the quality you picked.
+          Download a video or save a track.<br />Choose what you need. Keep the
+          quality you picked.
         </p>
       </div>
       <section class="workspace" aria-label="Download media">
         <div class="panel-heading">
           <span class="step">01</span>
           <h2>Start with a link</h2>
-          <span class="badge">YouTube</span>
+          <span class="badge">Video & audio</span>
         </div>
         <form class="link-form" @submit.prevent="analyze">
-          <label class="sr-only" for="source-url">YouTube video URL</label>
+          <label class="sr-only" for="source-url">Media URL</label>
           <div class="url-field">
             <Icon name="link" /><input
               id="source-url"
               v-model="url"
               type="url"
-              placeholder="Paste a YouTube video or Shorts link"
+              placeholder="Paste a YouTube, SoundCloud or TikTok link"
               autocomplete="url"
               required
               :disabled="!!analyzingId"
@@ -329,8 +380,8 @@ onUnmounted(() => {
           </button>
         </form>
         <p class="help">
-          <Icon name="clock" :size="14" />One video at a time. Available formats
-          come directly from the source.
+          <Icon name="clock" :size="14" />YouTube videos & Shorts, SoundCloud
+          tracks and TikTok videos. One item at a time.
         </p>
         <div v-if="analyzingId" class="loading-box" role="status">
           <span class="spinner" />{{
@@ -356,7 +407,7 @@ onUnmounted(() => {
             <img
               v-if="analysis.thumbnail"
               :src="analysis.thumbnail"
-              alt="Source video thumbnail"
+              alt="Source media artwork"
               referrerpolicy="no-referrer"
             />
             <div v-else class="thumbnail-placeholder">
@@ -384,7 +435,15 @@ onUnmounted(() => {
               </select></label
             ><label
               >Output preset<select v-model="profile">
-                <option value="original">Original · no re-encoding</option>
+                <option
+                  v-if="analysis.platform === 'TikTok'"
+                  value="compatible"
+                >
+                  Compatible MP4 · H.264 + AAC
+                </option>
+                <option v-else value="original">
+                  Original · no re-encoding
+                </option>
                 <option value="mp3" :disabled="!choice?.has_audio">
                   Audio MP3 · re-encode
                 </option>
@@ -393,16 +452,24 @@ onUnmounted(() => {
           </div>
           <div v-if="choice" class="format-summary">
             <span
-              >{{ choice.size_kind === "approximate" ? "About " : ""
+              >{{ profile === "compatible" ? "Source: " : ""
+              }}{{ choice.size_kind === "approximate" ? "About " : ""
               }}{{ bytes(choice.size) }}</span
             ><span>{{
               profile === "mp3"
                 ? "Audio encoding required"
-                : choice.operation === "merge"
-                  ? "Separate tracks · lossless merge"
-                  : "Direct source download"
+                : profile === "compatible"
+                  ? "Output: MP4 · H.264 + AAC"
+                  : choice.operation === "merge"
+                    ? "Separate tracks · lossless merge"
+                    : "Direct source download"
             }}</span>
           </div>
+          <p v-if="analysis.platform === 'TikTok'" class="help">
+            Sources with a reported watermark are excluded. Video delivery keeps
+            the selected resolution; HEVC is re-encoded for compatible playback.
+            Output size may change.
+          </p>
           <details class="advanced">
             <summary>Advanced · source details & encoding</summary>
             <dl v-if="choice">
@@ -419,6 +486,14 @@ onUnmounted(() => {
                       .join(" / ")
                   }}
                 </dd>
+              </div>
+              <div v-if="choice.width && choice.height">
+                <dt>Source dimensions</dt>
+                <dd>{{ choice.width }} × {{ choice.height }}</dd>
+              </div>
+              <div v-if="choice.audio_bitrate">
+                <dt>Source audio bitrate</dt>
+                <dd>{{ choice.audio_bitrate }} kbps</dd>
               </div>
             </dl>
             <label v-if="profile === 'mp3'"
@@ -672,6 +747,27 @@ onUnmounted(() => {
                 {{ date(task.created_at) }} <span class="dot">·</span>
                 {{ task.operation }}
               </p>
+              <p
+                v-if="
+                  task.result?.timings &&
+                  ['download', 'convert'].includes(task.kind)
+                "
+                class="expiry"
+              >
+                Processed in {{ duration(task.result.timings.total_seconds) }}
+                <template v-if="task.result.timings.stages.downloading"
+                  >· Download
+                  {{
+                    duration(task.result.timings.stages.downloading)
+                  }}</template
+                >
+                <template v-if="task.result.timings.stages.converting"
+                  >· Convert & check
+                  {{
+                    duration(task.result.timings.stages.converting)
+                  }}</template
+                >
+              </p>
               <div
                 v-if="task.state === 'running' && task.progress !== null"
                 class="progress-wrap"
@@ -818,6 +914,16 @@ onUnmounted(() => {
         <section class="workspace settings-panel">
           <h2>Runtime diagnostics</h2>
           <dl class="settings-list versions">
+            <div>
+              <dt>Browser transport support</dt>
+              <dd>
+                {{
+                  server.source_transport.browser_impersonation
+                    ? "Available"
+                    : "Missing · rebuild the worker image"
+                }}
+              </dd>
+            </div>
             <div v-for="(version, name) in server.versions" :key="name">
               <dt>{{ name }}</dt>
               <dd>{{ version }}</dd>

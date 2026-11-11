@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-11-11T11:28:50.340120+00:00",
+  "source": "https://www.tiktok.com/@jua209njo656/video/7705216175302659350",
+  "platform": "TikTok",
+  "publication_type": "video",
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "h264_540p_985579-0"
+      ],
+      "selected_height": 1024,
+      "selected_width": 576,
+      "selected_kind": "video",
+      "error": null,
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 73.583991,
+        "width": 576,
+        "height": 1024,
+        "video_codec": "h264",
+        "audio_codec": "aac",
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 9065487
+    },
+    {
+      "scenario": "download mp3",
+      "state": "completed",
+      "source_format_ids": [
+        "h264_540p_985579-0"
+      ],
+      "selected_height": 1024,
+      "selected_width": 576,
+      "selected_kind": "video",
+      "error": null,
+      "metadata": {
+        "kind": "audio",
+        "format": "mp3",
+        "duration": 73.613061,
+        "width": null,
+        "height": null,
+        "video_codec": null,
+        "audio_codec": "mp3",
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 1767594
+    }
+  ],
+  "environment": "development environment; owner Windows Compose recheck remains pending",
+  "input_form": "owner-supplied vt.tiktok.com share link; resolved and tested through the API",
+  "causality_note": "The same link also passed before curl-cffi was installed in this environment. This is live evidence, not proof that the owner failure was caused only by that missing dependency."
+}
