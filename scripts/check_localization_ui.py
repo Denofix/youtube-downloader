@@ -46,7 +46,8 @@ def main():
         # The native select is keyboard-accessible and occupies the top-right header area.
         english_picker.focus()
         english_picker.press("ArrowDown")
-        english_picker.press("Enter")
+        # ArrowDown changes the accessible name immediately; keep using keyboard focus.
+        page.keyboard.press("Enter")
         expect(page.locator("html")).to_have_attribute("lang", "uk")
         expect(page.get_by_label("Мова", exact=True)).to_have_value("uk")
         expect(page.get_by_label("Посилання на медіа", exact=True)).to_have_value(url)
