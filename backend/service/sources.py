@@ -22,11 +22,57 @@ YOUTUBE_HOSTS = {
 SOUNDCLOUD_HOSTS = {"soundcloud.com", "www.soundcloud.com", "m.soundcloud.com", "on.soundcloud.com"}
 TIKTOK_HOSTS = {"tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"}
 INSTAGRAM_HOSTS = {"instagram.com", "www.instagram.com", "m.instagram.com"}
-PLANNED_HOSTS = {"pinterest.com", "pin.it"}
+PINTEREST_DOMAINS = {
+    "com",
+    "fr",
+    "de",
+    "ch",
+    "jp",
+    "cl",
+    "ca",
+    "it",
+    "co.uk",
+    "nz",
+    "ru",
+    "com.au",
+    "at",
+    "pt",
+    "co.kr",
+    "es",
+    "com.mx",
+    "dk",
+    "ph",
+    "th",
+    "com.uy",
+    "co",
+    "nl",
+    "info",
+    "kr",
+    "ie",
+    "vn",
+    "com.vn",
+    "ec",
+    "mx",
+    "in",
+    "pe",
+    "co.at",
+    "hu",
+    "co.in",
+    "co.nz",
+    "id",
+    "com.ec",
+    "com.py",
+    "tw",
+    "be",
+    "uk",
+    "com.bo",
+    "com.pe",
+}
 THUMBNAIL_DOMAINS = {
     "YouTube": ("ytimg.com",),
     "SoundCloud": ("sndcdn.com",),
     "Instagram": ("cdninstagram.com", "fbcdn.net"),
+    "Pinterest": ("pinimg.com",),
     "TikTok": (
         "tiktokcdn.com",
         "tiktokcdn-us.com",
@@ -36,6 +82,28 @@ THUMBNAIL_DOMAINS = {
         "ibyteimg.com",
     ),
 }
+
+
+def pinterest_host(host):
+    return bool(host) and any(
+        re.fullmatch(r"(?:(?:www|m|[a-z]{2})\.)?pinterest\." + re.escape(suffix), host)
+        for suffix in PINTEREST_DOMAINS
+    )
+
+
+def pinterest_redirect(value):
+    """Only Pinterest's observed shortener hop, never an arbitrary API path."""
+    try:
+        p = urlsplit(value)
+        return (
+            p.scheme == "https"
+            and p.netloc == "api.pinterest.com"
+            and not p.query
+            and not p.fragment
+            and re.fullmatch(r"/url_shortener/[A-Za-z0-9_-]{1,128}/redirect/?", p.path)
+        )
+    except ValueError:
+        return False
 
 
 def platform_for(url: str) -> str:
@@ -48,7 +116,11 @@ def platform_for(url: str) -> str:
         return "TikTok"
     if host in INSTAGRAM_HOSTS:
         return "Instagram"
-    raise ServiceError("invalid_url", "Use a YouTube, SoundCloud, TikTok or Instagram link.")
+    if host == "pin.it" or pinterest_host(host):
+        return "Pinterest"
+    raise ServiceError(
+        "invalid_url", "Use a YouTube, SoundCloud, TikTok, Instagram or Pinterest link."
+    )
 
 
 def validate_url(value: str) -> str:
@@ -65,6 +137,20 @@ def validate_url(value: str) -> str:
         ):
             raise ValueError
         host = (url.hostname or "").lower()
+        if host == "pin.it":
+            if re.fullmatch(r"/[A-Za-z0-9_-]{1,128}/?", url.path):
+                return "https://pin.it" + url.path.rstrip("/")
+            raise ValueError
+        if pinterest_host(host):
+            match = re.fullmatch(
+                r"/pin/(?:[A-Za-z0-9%._~-]{1,400}--)?([0-9]{1,30})(?:/sent)?/?", url.path
+            )
+            if match:
+                return f"https://www.pinterest.com/pin/{match[1]}/"
+            raise ServiceError(
+                "pinterest_permalink_required",
+                "Use one Pinterest pin or pin.it share link. Boards, profiles and searches are not supported.",
+            )
         if host in INSTAGRAM_HOSTS:
             match = re.fullmatch(r"/(p|reel|reels|tv)/([A-Za-z0-9_-]{1,64})/?", url.path)
             if match:
@@ -130,11 +216,6 @@ def validate_url(value: str) -> str:
                 "Use one TikTok video permalink. Profiles, sounds and collections are planned for later.",
             )
         if host not in YOUTUBE_HOSTS:
-            if any(host == h or host.endswith("." + h) for h in PLANNED_HOSTS):
-                raise ServiceError(
-                    "platform_planned",
-                    "This platform is planned for a later stage. Use YouTube, SoundCloud, TikTok or an Instagram video in this build.",
-                )
             raise ValueError
         if host.endswith("youtu.be"):
             video_id = url.path.strip("/")
@@ -150,14 +231,16 @@ def validate_url(value: str) -> str:
     except (ValueError, TypeError):
         raise ServiceError(
             "invalid_url",
-            "Enter a YouTube video, public SoundCloud track, TikTok post or Instagram post URL.",
+            "Enter a YouTube video, public SoundCloud track, TikTok post, Instagram post or Pinterest pin URL.",
         ) from None
 
 
 def is_short_url(url: str) -> bool:
     parts = urlsplit(url)
-    return parts.hostname in {"on.soundcloud.com", "vm.tiktok.com", "vt.tiktok.com"} or (
-        parts.hostname == "www.tiktok.com" and parts.path.startswith("/t/")
+    return (
+        pinterest_redirect(url)
+        or parts.hostname in {"on.soundcloud.com", "vm.tiktok.com", "vt.tiktok.com", "pin.it"}
+        or (parts.hostname == "www.tiktok.com" and parts.path.startswith("/t/"))
     )
 
 
@@ -189,8 +272,13 @@ def resolve_url(value: str) -> str:
                     "Location"
                 ):
                     break
-                candidate = validate_url(urljoin(url, response.headers["Location"]))
-                if platform_for(candidate) != platform:
+                target = urljoin(url, response.headers["Location"])
+                candidate = (
+                    target
+                    if platform == "Pinterest" and pinterest_redirect(target)
+                    else validate_url(target)
+                )
+                if not pinterest_redirect(candidate) and platform_for(candidate) != platform:
                     break
                 url = candidate
         except (OSError, URLError, ValueError, ServiceError):
@@ -199,7 +287,7 @@ def resolve_url(value: str) -> str:
         return url
     raise ServiceError(
         "short_link_error",
-        "This share link could not be resolved to one supported item. Open it in your browser and paste the full track or video permalink.",
+        "This share link could not be resolved to one supported item. Open it in your browser and paste the full post, track or video permalink.",
     )
 
 
@@ -216,7 +304,7 @@ def options(config: Settings):
         "no_warnings": True,
         "logger": QuietLogger(),
         "noplaylist": True,
-        "allowed_extractors": ["youtube$", "soundcloud$", "tiktok$", "instagram$"],
+        "allowed_extractors": ["youtube$", "soundcloud$", "tiktok$", "instagram$", "pinterest$"],
         "socket_timeout": 20,
         "retries": 2,
         "fragment_retries": 2,
@@ -375,7 +463,7 @@ def normalize(info: dict, url: str):
                     format_identity(p, "video" if index == 0 and len(parts) == 2 else "clip_audio")
                     for index, p in enumerate(parts)
                 ]
-                if platform in {"TikTok", "Instagram"}
+                if platform in {"TikTok", "Instagram", "Pinterest"}
                 else None,
                 "kind": "video" if video else "audio",
                 "container": container,
@@ -393,6 +481,11 @@ def normalize(info: dict, url: str):
                     (p.get("acodec") for p in parts if p.get("acodec", "none") != "none"), None
                 ),
                 "has_audio": sound or len(parts) == 2,
+                **(
+                    {"audio_unknown": True}
+                    if platform == "Pinterest" and f.get("acodec") == "unknown" and len(parts) == 1
+                    else {}
+                ),
                 "operation": "merge" if len(parts) == 2 else "download",
                 "size": size,
                 "size_kind": "exact" if exact else "approximate" if size else "unknown",
@@ -467,6 +560,10 @@ def analyze(url, config):
         from . import instagram
 
         return instagram.analyze(url, config)
+    if platform_for(url) == "Pinterest":
+        from . import pinterest
+
+        return pinterest.analyze(url, config)
     try:
         with yt_dlp.YoutubeDL(options(config)) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -598,10 +695,11 @@ def _download_one(
             yield next((item for item in clean if item["format_id"] == desired_id), clean[0])
 
         opts["format"] = exact_representation
-    if analysis.get("platform") == "Instagram":
+    if analysis.get("platform") in {"Instagram", "Pinterest"}:
+        platform = analysis["platform"]
         identities = choice.get("source_formats")
         if not identities:
-            raise ServiceError("analysis_expired", "Analyze this Instagram video again.")
+            raise ServiceError("analysis_expired", f"Analyze this {platform} video again.")
         if profile == "mp3" and len(identities) == 2:
             identities = identities[-1:]
 
@@ -629,14 +727,14 @@ def _download_one(
                 if not matching:
                     raise ServiceError(
                         "format_unavailable",
-                        "This exact Instagram quality/codec is no longer available. Analyze the link again.",
+                        f"This exact {platform} quality/codec is no longer available. Analyze the link again.",
                     )
                 exact_id = next(
                     (item for item in matching if item["format_id"] == identity["format_id"]),
                     None,
                 )
                 known_quality = (
-                    identity.get("vcodec") not in {None, "none"}
+                    identity.get("vcodec") not in {None, "none", "unknown"}
                     and identity.get("width")
                     and identity.get("height")
                 ) or (
@@ -647,7 +745,7 @@ def _download_one(
                 if exact_id is None and not known_quality:
                     raise ServiceError(
                         "format_unavailable",
-                        "The source changed an Instagram format without enough quality details to match it. Analyze the link again.",
+                        f"The source changed a {platform} format without enough quality details to match it. Analyze the link again.",
                     )
                 selected.append(exact_id or matching[0])
             if len(selected) == 1:
@@ -679,6 +777,13 @@ def _download_one(
                 else:
                     raw = raw_info
                 require_single_instagram_video(raw, analysis["source_id"])
+                info = ydl.process_ie_result(raw, download=True)
+            elif analysis.get("platform") == "Pinterest":
+                from . import pinterest
+
+                pin, raw = pinterest.read_pin(url, config, ydl)
+                if str(pin["id"]) != analysis["source_id"] or raw is None:
+                    raise ServiceError("source_changed", "This pin changed. Analyze the pin again.")
                 info = ydl.process_ie_result(raw, download=True)
             else:
                 info = ydl.extract_info(url, download=True)

@@ -5,14 +5,21 @@
     "instagram_reel_download_and_playback": true,
     "tiktok_photo_selection_and_download": true,
     "tiktok_multi_photo_zip_opened": true,
-    "downloaded_tiktok_photo_opened": true
+    "downloaded_tiktok_photo_opened": true,
+    "instagram_photo_download": true,
+    "instagram_photo_carousel_subset_delivery": true,
+    "instagram_video_download_with_audio": true,
+    "retained_instagram_video_to_mp3_download": true
   },
   "not_explicitly_owner_confirmed": [
-    "Instagram MP3",
-    "Instagram photo/carousel stage 4b",
+    "Instagram source-preset MP3 separately from retained video conversion",
+    "Instagram mixed photo/video carousel",
     "keyboard focus and long-title browser assertions"
   ],
   "follow_up": {
-    "url_field_double_focus_border": "Fixed in stage 4b; retain one visible indicator around the icon and complete field."
-  }
+    "url_field_double_focus_border": "Fixed in stage 4b; retain one visible indicator around the icon and complete field.",
+    "instagram_stage_4b": "Owner confirmed photos, a selected photo-carousel subset, video with audio and retained video-to-MP3 delivery on 12 November 2026; screenshots show 14 analyzed photos and selected positions 1, 2 and 13."
+  },
+  "installed_branch": "feat/instagram-gallery",
+  "installed_commit": "Not separately reported; owner fetch/switch/pull and successful Docker build/start are shown in the conversation."
 }

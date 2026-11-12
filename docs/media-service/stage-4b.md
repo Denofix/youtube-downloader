@@ -35,7 +35,7 @@ GitHub Actions passed for implementation commit `5018dad37c814eedae39350e7aa0f62
 
 All four browser suites passed: general media conversion/playback, TikTok photo selection including keyboard navigation and long titles, Instagram video delivery/playback, and Instagram single-photo/mixed-carousel delivery. They exercise actual files, source-ordered ZIP bytes, retained conversion, per-item MP3, reload/history and mobile/desktop overflow using clearly identified owned fixtures. Focus checks confirm the nested URL input has no outline. The CI screenshot archive checksum was verified, and focused desktop/mobile views plus gallery desktop/mobile/results views were visually reviewed: one outline encloses the complete link field and icon, with no horizontal overflow. See the [CI evidence](ci-instagram-gallery-2026-11-12.json).
 
-Local Chromium cannot start because of the development environment's socket restriction, and Docker is unavailable locally; the successful browser and container checks above ran in GitHub Actions. Owner-instance testing of the new gallery and focus appearance remains pending.
+Local Chromium cannot start because of the development environment's socket restriction, and Docker is unavailable locally; the successful browser and container checks above ran in GitHub Actions. The owner subsequently confirmed Instagram photos, a selected subset from a 14-photo carousel, video with audio and retained video-to-MP3 delivery in the Windows Docker instance; see [owner acceptance](owner-acceptance-2026-11-12.json). The new mixed-carousel path and keyboard assertions retain their controlled CI evidence.
 
 ## Windows update
 
@@ -47,4 +47,4 @@ docker compose up -d --build
 
 Refresh with Ctrl+F5. Check the link-field outline, an Instagram photo, a photo carousel and, where available, a carousel video with audio. Select a subset, compare individual files and ZIP, then convert a retained photo. Existing volumes, history and prior source workflows are preserved.
 
-Opt-in isolated public checks are `scripts/verify_photos.py` for image-only posts and `scripts/verify_gallery.py` for video/mixed carousels; both support `--ephemeral --output /tmp/report.json URL`. Pinterest is the next source stage.
+Opt-in isolated public checks are `scripts/verify_photos.py` for image-only posts and `scripts/verify_gallery.py` for video/mixed carousels; both support `--ephemeral --output /tmp/report.json URL`. Pinterest is implemented in [stage 5](stage-5.md).

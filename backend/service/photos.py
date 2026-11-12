@@ -125,6 +125,8 @@ def fetch_image(urls, target, limit, platform="TikTok"):
                         "User-Agent": "Mozilla/5.0",
                         "Referer": "https://www.instagram.com/"
                         if platform == "Instagram"
+                        else "https://www.pinterest.com/"
+                        if platform == "Pinterest"
                         else "https://www.tiktok.com/",
                         "Accept-Encoding": "identity",
                     },
@@ -170,7 +172,18 @@ def fetch_image(urls, target, limit, platform="TikTok"):
 
 def verify_photo(path, expected):
     metadata = media.verify(path)
-    if metadata["kind"] != "image" or metadata["format"] not in {"jpeg", "png", "webp"}:
+    animated = expected.get("allow_animation") is True
+    if expected.get("required_format") and metadata["format"] != expected["required_format"]:
+        raise ServiceError(
+            "invalid_photo", "The source returned a cover image instead of its reported animation."
+        )
+    if (
+        metadata["kind"] not in ({"image", "animation"} if animated else {"image"})
+        or metadata["format"]
+        not in ({"jpeg", "png", "webp", "gif"} if animated else {"jpeg", "png", "webp"})
+        or metadata["kind"] == "animation"
+        and metadata["format"] != "gif"
+    ):
         raise ServiceError(
             "invalid_photo", "The photo source did not return a supported still image."
         )
@@ -230,6 +243,11 @@ def cache_image(image, store, task_id, directory, position, title, platform="Tik
         "sha256": digest,
         "source_asset_id": source_id,
         "preview_asset_id": small_id,
+        **(
+            {"kind": metadata["kind"], "frames": metadata["frames"], "allow_animation": True}
+            if image.get("allow_animation")
+            else {}
+        ),
     }
 
 
@@ -312,6 +330,11 @@ def deliver(analysis, selected, store, task_id, directory, report):
                 "height": metadata["height"],
                 "format": metadata["format"],
                 "size": target.stat().st_size,
+                **(
+                    {"kind": metadata["kind"], "frames": metadata["frames"]}
+                    if item.get("allow_animation")
+                    else {}
+                ),
             }
         )
         paths.append((target, name))
