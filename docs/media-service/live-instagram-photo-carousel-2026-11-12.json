@@ -1,0 +1,77 @@
+{
+  "checked_at": "2026-11-12T01:49:30.465623+00:00",
+  "source": "https://www.instagram.com/p/BoHk1haB5tM/",
+  "checks": [
+    {
+      "scenario": "photo analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "all local previews",
+      "state": "completed",
+      "count": 5
+    },
+    {
+      "scenario": "selected original photos",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "ZIP preserves selected bytes and source order",
+      "state": "completed",
+      "bytes": 298394
+    },
+    {
+      "scenario": "retained photo to PNG",
+      "state": "completed",
+      "error": null
+    }
+  ],
+  "canonical_source": "https://www.instagram.com/p/BoHk1haB5tM/",
+  "item_count": 5,
+  "analysis_timings": {
+    "total_seconds": 36.232,
+    "stages": {
+      "starting": 0.0,
+      "analyzing": 12.869,
+      "downloading": 23.363
+    }
+  },
+  "download_timings": {
+    "total_seconds": 0.133,
+    "stages": {
+      "starting": 0.0,
+      "preparing": 0.133
+    }
+  },
+  "files": [
+    {
+      "position": 1,
+      "format": "JPEG",
+      "width": 1080,
+      "height": 1080,
+      "bytes": 192409,
+      "sha256": "0b4360dd3c03dbc4a43b73661c5f031b7bc704c74a66e68bdd04a8a4b552bcd9",
+      "http_status": 200
+    },
+    {
+      "position": 5,
+      "format": "JPEG",
+      "width": 1080,
+      "height": 1080,
+      "bytes": 105395,
+      "sha256": "0df371b3d7819831a4c31126a61dfabee9b091f1fce685d5b12a439b463014d5",
+      "http_status": 200
+    }
+  ],
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  }
+}

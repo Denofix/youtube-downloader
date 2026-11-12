@@ -245,6 +245,28 @@ def convert(source: Path, metadata, parameters, directory: Path):
     return target, result
 
 
+def verify_selected_source(path, choice, profile, directory, report):
+    report("verifying")
+    # Compatible delivery decodes while encoding and fully verifies the final MP4.
+    metadata = probe(path) if profile == "compatible" else verify(path)
+    if choice["has_audio"] and not metadata["has_audio"]:
+        raise ServiceError("invalid_result", "The result is missing its selected audio stream.")
+    if profile != "mp3" and any(
+        choice.get(dimension) and metadata.get(dimension) != choice[dimension]
+        for dimension in ("width", "height")
+    ):
+        raise ServiceError(
+            "quality_mismatch", "The result does not match the selected resolution. Analyze again."
+        )
+    if profile == "compatible":
+        report("converting")
+        original = path
+        path, metadata = compatible_video(original, metadata, directory)
+        original.unlink()
+        report("verifying")
+    return path, metadata
+
+
 def compatible_video(source: Path, metadata, directory: Path):
     """Deliver an MP4 that does not require an HEVC/10-bit decoder on the client."""
     if metadata["kind"] != "video" or not metadata["has_audio"]:

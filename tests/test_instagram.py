@@ -203,7 +203,7 @@ def test_instagram_missing_selected_audio_does_not_publish_a_silent_video(client
     [
         ("changed_quality", "format_unavailable"),
         ("changed_source", "source_changed"),
-        ("carousel", "instagram_carousel_planned"),
+        ("carousel", "source_changed"),
     ],
 )
 def test_instagram_refresh_never_switches_quality_post_or_carousel(
@@ -235,17 +235,19 @@ def test_instagram_silent_video_does_not_offer_mp3(client, store, instagram):
     assert download(client, store, task)["state"] == "completed"
 
 
-def test_instagram_carousel_is_rejected_before_children_are_processed(client, store, instagram):
+def test_unexpected_raw_collection_is_not_expanded_without_publication_metadata(
+    client, store, instagram
+):
     instagram["carousel"] = True
     client.post("/api/analyze", json={"url": POST})
     task = work(store)
-    assert task["state"] == "failed" and task["error"]["code"] == "instagram_carousel_planned"
+    assert task["state"] == "failed" and task["error"]["code"] == "source_changed"
 
 
 @pytest.mark.parametrize(
     ("message", "code"),
     [
-        ("There is no video in this post", "instagram_photo_planned"),
+        ("There is no video in this post", "instagram_post_unreadable"),
         ("The webpage request was redirected to the login page", "access_required"),
         ("You have exceeded the rate-limit for accessing posts anonymously", "source_rate_limited"),
         ("HTTP Error 429: Too Many Requests", "source_rate_limited"),

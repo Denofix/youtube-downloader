@@ -1,4 +1,4 @@
-"""Bounded TikTok photo snapshots, local previews and selected-file delivery."""
+"""Bounded photo snapshots, local previews and selected-file delivery."""
 
 import hashlib
 import re
@@ -24,7 +24,7 @@ def is_photo_url(url):
     return sources.platform_for(url) == "TikTok" and "/photo/" in urlsplit(url).path
 
 
-def check_media_url(url):
+def check_media_url(url, platform="TikTok"):
     try:
         if not isinstance(url, str):
             raise ValueError
@@ -38,7 +38,8 @@ def check_media_url(url):
             or p.password
             or p.port not in {None, 443}
             or not any(
-                host.endswith("." + domain) for domain in sources.THUMBNAIL_DOMAINS["TikTok"]
+                host.endswith("." + domain)
+                for domain in sources.THUMBNAIL_DOMAINS.get(platform, ())
             )
         ):
             raise ValueError
@@ -108,18 +109,23 @@ def analyze(url, config):
     }
 
 
-def fetch_image(urls, target, limit):
+def fetch_image(urls, target, limit, platform="TikTok"):
+    def check(url):
+        return check_media_url(url) if platform == "TikTok" else check_media_url(url, platform)
+
     opener = build_opener(sources.NoRedirects(), HTTPSHandler(context=ssl.create_default_context()))
     for original in urls:
         url = original
         try:
             for _ in range(5):
-                check_media_url(url)
+                check(url)
                 request = Request(
                     url,
                     headers={
                         "User-Agent": "Mozilla/5.0",
-                        "Referer": "https://www.tiktok.com/",
+                        "Referer": "https://www.instagram.com/"
+                        if platform == "Instagram"
+                        else "https://www.tiktok.com/",
                         "Accept-Encoding": "identity",
                     },
                 )
@@ -129,7 +135,7 @@ def fetch_image(urls, target, limit):
                     response = error
                 with response:
                     if response.code in {301, 302, 303, 307, 308}:
-                        url = check_media_url(urljoin(url, response.headers.get("Location", "")))
+                        url = check(urljoin(url, response.headers.get("Location", "")))
                         continue
                     if response.code != 200:
                         break
@@ -168,7 +174,10 @@ def verify_photo(path, expected):
         raise ServiceError(
             "invalid_photo", "The photo source did not return a supported still image."
         )
-    if any(metadata[key] != expected[key] for key in ("width", "height")):
+    if any(
+        expected.get(key) is not None and metadata[key] != expected[key]
+        for key in ("width", "height")
+    ):
         raise ServiceError(
             "quality_mismatch", "A photo does not match its reported dimensions. Analyze again."
         )
@@ -190,46 +199,92 @@ def preview(source, target):
     return media.probe(target)
 
 
+def cache_image(image, store, task_id, directory, position, title, platform="TikTok", report=None):
+    path = directory / f"source-{position:02}"
+    limit = min(MAX_PHOTO_BYTES, store.config.max_file_bytes)
+    if platform == "TikTok":
+        fetch_image(image["urls"], path, limit)
+    else:
+        fetch_image(image["urls"], path, limit, platform)
+    if report:
+        report("verifying")
+    metadata = verify_photo(path, image)
+    extension = ".jpg" if metadata["format"] == "jpeg" else "." + metadata["format"]
+    original = path.with_suffix(extension)
+    path.rename(original)
+    name = media.safe_name(title, extension, f"photo {position:02}")
+    source_id = store.add_asset(original, name, metadata, task_id)
+    small = directory / f"preview-{position:02}.jpg"
+    small_id = store.add_asset(
+        small, f"Photo {position} preview.jpg", preview(original, small), task_id
+    )
+    with original.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    return {
+        "id": f"photo_{position}",
+        "position": position,
+        "width": metadata["width"],
+        "height": metadata["height"],
+        "format": metadata["format"],
+        "size": original.stat().st_size,
+        "sha256": digest,
+        "source_asset_id": source_id,
+        "preview_asset_id": small_id,
+    }
+
+
 def prepare_analysis(result, store, task_id, directory, report):
     images = result.pop("_images")
     items, total = [], 0
     for index, image in enumerate(images, 1):
         report("downloading", 100 * (index - 1) / len(images))
-        path = directory / f"source-{index:02}"
-        fetch_image(image["urls"], path, min(MAX_PHOTO_BYTES, store.config.max_file_bytes))
-        total += path.stat().st_size
+        item = cache_image(
+            image, store, task_id, directory, index, result["title"], result["platform"], report
+        )
+        total += item["size"]
         if total > store.config.max_file_bytes:
             raise ServiceError(
                 "file_limit", "The photo post exceeds the configured combined file limit."
             )
-        report("verifying")
-        metadata = verify_photo(path, image)
-        extension = ".jpg" if metadata["format"] == "jpeg" else "." + metadata["format"]
-        original = path.with_suffix(extension)
-        path.rename(original)
-        name = media.safe_name(result["title"], extension, f"photo {index:02}")
-        source_id = store.add_asset(original, name, metadata, task_id)
-        small = directory / f"preview-{index:02}.jpg"
-        small_id = store.add_asset(
-            small, f"Photo {index} preview.jpg", preview(original, small), task_id
-        )
-        with original.open("rb") as stream:
-            digest = hashlib.file_digest(stream, "sha256").hexdigest()
-        items.append(
-            {
-                "id": f"photo_{index}",
-                "position": index,
-                "width": metadata["width"],
-                "height": metadata["height"],
-                "format": metadata["format"],
-                "size": original.stat().st_size,
-                "sha256": digest,
-                "source_asset_id": source_id,
-                "preview_asset_id": small_id,
-            }
-        )
+        items.append(item)
     result["items"] = items
     return result
+
+
+def copy_snapshot(item, store, directory):
+    source = store.asset(item["source_asset_id"], allow_expired=True)
+    target = directory / (f"photo-{item['position']:02}" + Path(source["name"]).suffix)
+    shutil.copyfile(source["path"], target)
+    with target.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    if digest != item["sha256"]:
+        raise ServiceError(
+            "photo_snapshot_changed", "A retained photo changed. Analyze this post again."
+        )
+    return target, source["name"], verify_photo(target, item)
+
+
+def make_archive(paths, store, task_id, directory, title, descriptor):
+    if len(paths) < 2:
+        return None
+    total = sum(path.stat().st_size for path, name in paths)
+    if total + len(paths) * 1024 > store.config.max_file_bytes:
+        raise ServiceError("file_limit", "The selected ZIP would exceed the configured file limit.")
+    archive = directory / "selected.zip"
+    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_STORED) as output:
+        for path, name in paths:
+            output.write(path, arcname=name)
+    with zipfile.ZipFile(archive) as check:
+        if check.testzip() is not None or len(check.infolist()) != len(paths):
+            raise ServiceError("invalid_result", "The archive could not be verified.")
+    if archive.stat().st_size > store.config.max_file_bytes:
+        raise ServiceError("file_limit", "The archive exceeds the configured file limit.")
+    return store.add_asset(
+        archive,
+        media.safe_name(title, ".zip", descriptor),
+        {"kind": "archive", "format": "zip", "item_count": len(paths), "has_audio": False},
+        task_id,
+    )
 
 
 def deliver(analysis, selected, store, task_id, directory, report):
@@ -237,22 +292,13 @@ def deliver(analysis, selected, store, task_id, directory, report):
     files, paths, total = [], [], 0
     for index, item in enumerate(items, 1):
         report("preparing", 100 * (index - 1) / len(items))
-        source = store.asset(item["source_asset_id"], allow_expired=True)
-        target = directory / (f"photo-{item['position']:02}" + Path(source["name"]).suffix)
-        shutil.copyfile(source["path"], target)
-        with target.open("rb") as stream:
-            digest = hashlib.file_digest(stream, "sha256").hexdigest()
-        if digest != item["sha256"]:
-            raise ServiceError(
-                "photo_snapshot_changed", "A retained photo changed. Analyze this post again."
-            )
+        target, name, metadata = copy_snapshot(item, store, directory)
         total += target.stat().st_size
         if total > store.config.max_file_bytes:
             raise ServiceError(
                 "file_limit", "The selected photos exceed the configured combined limit."
             )
-        metadata = verify_photo(target, item)
-        asset_id = store.add_asset(target, source["name"], metadata, task_id)
+        asset_id = store.add_asset(target, name, metadata, task_id)
         small = directory / f"preview-{item['position']:02}.jpg"
         small_id = store.add_asset(small, "Photo preview.jpg", preview(target, small), task_id)
         files.append(
@@ -261,35 +307,18 @@ def deliver(analysis, selected, store, task_id, directory, report):
                 "position": item["position"],
                 "asset_id": asset_id,
                 "preview_asset_id": small_id,
-                "name": source["name"],
+                "name": name,
                 "width": metadata["width"],
                 "height": metadata["height"],
                 "format": metadata["format"],
                 "size": target.stat().st_size,
             }
         )
-        paths.append((target, source["name"]))
+        paths.append((target, name))
     result = {"files": files, "item_count": len(files)}
-    if len(files) > 1:
-        report("preparing")
-        # JPEG/PNG/WebP are already compressed; store exact bytes without recompression.
-        if total + len(files) * 1024 > store.config.max_file_bytes:
-            raise ServiceError(
-                "file_limit", "The selected ZIP would exceed the configured file limit."
-            )
-        archive = directory / "photos.zip"
-        with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_STORED) as output:
-            for path, name in paths:
-                output.write(path, arcname=name)
-        with zipfile.ZipFile(archive) as check:
-            if check.testzip() is not None or len(check.infolist()) != len(files):
-                raise ServiceError("invalid_result", "The photo archive could not be verified.")
-        if archive.stat().st_size > store.config.max_file_bytes:
-            raise ServiceError("file_limit", "The photo archive exceeds the configured file limit.")
-        result["archive_asset_id"] = store.add_asset(
-            archive,
-            media.safe_name(analysis["title"], ".zip", f"{len(files)} photos"),
-            {"kind": "archive", "format": "zip", "item_count": len(files), "has_audio": False},
-            task_id,
-        )
+    archive_id = make_archive(
+        paths, store, task_id, directory, analysis["title"], f"{len(files)} photos"
+    )
+    if archive_id:
+        result["archive_asset_id"] = archive_id
     return result

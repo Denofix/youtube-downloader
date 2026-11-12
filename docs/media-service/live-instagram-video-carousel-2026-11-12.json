@@ -1,0 +1,97 @@
+{
+  "checked_at": "2026-11-12T01:53:10.705096+00:00",
+  "source": "https://www.instagram.com/p/BtOvDOfhvRr/",
+  "checks": [
+    {
+      "scenario": "carousel analysis",
+      "state": "completed",
+      "error": null,
+      "timings": {
+        "total_seconds": 27.837,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 17.46,
+          "downloading": 10.33,
+          "verifying": 0.047
+        }
+      }
+    },
+    {
+      "scenario": "selected carousel files",
+      "state": "completed",
+      "error": null,
+      "timings": {
+        "total_seconds": 27.192,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 23.473,
+          "preparing": 0.008,
+          "downloading": 2.176,
+          "verifying": 1.535
+        }
+      }
+    },
+    {
+      "scenario": "ZIP bytes and source order",
+      "state": "completed",
+      "bytes": 5208059
+    }
+  ],
+  "item_count": 2,
+  "item_kinds": [
+    "video",
+    "video"
+  ],
+  "canonical_source": "https://www.instagram.com/p/BtOvDOfhvRr/",
+  "files": [
+    {
+      "position": 1,
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 26.601302,
+        "width": 640,
+        "height": 640,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "Main",
+        "audio_codec": null,
+        "audio_profile": null,
+        "audio_channels": null,
+        "has_audio": false
+      },
+      "bytes": 2323148,
+      "sha256": "b11e8353ded50460113358ae238df8136d7e100aeb2a33a25f9c8837c3b2d54b",
+      "http_status": 200
+    },
+    {
+      "position": 2,
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 31.335026,
+        "width": 640,
+        "height": 640,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "Main",
+        "audio_codec": null,
+        "audio_profile": null,
+        "audio_channels": null,
+        "has_audio": false
+      },
+      "bytes": 2884321,
+      "sha256": "10602ca6c6e79a4e73d49d2e7bd6db91d0906f91f47cf1aa662b1c0081c095c8",
+      "http_status": 200
+    }
+  ],
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  }
+}

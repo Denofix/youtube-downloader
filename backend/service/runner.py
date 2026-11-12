@@ -2,7 +2,7 @@ import resource
 import sys
 import time
 
-from . import media, photos, sources
+from . import instagram, media, photos, sources
 from .errors import ServiceError
 from .store import Store
 
@@ -28,9 +28,15 @@ def execute(task, store):
             result = sources.analyze(payload["url"], config)
             if result.get("kind") == "photos":
                 result = photos.prepare_analysis(result, store, task_id, directory, report)
+            elif result.get("kind") == "gallery":
+                result = instagram.prepare_analysis(result, store, task_id, directory, report)
         elif task["kind"] == "download" and payload["analysis"].get("kind") == "photos":
             result = photos.deliver(
                 payload["analysis"], payload["item_ids"], store, task_id, directory, report
+            )
+        elif task["kind"] == "download" and payload["analysis"].get("kind") == "gallery":
+            result = instagram.deliver(
+                payload["analysis"], payload["selections"], store, task_id, directory, report
             )
         elif task["kind"] == "inspect":
             report("inspecting")
@@ -60,28 +66,9 @@ def execute(task, store):
                     config,
                     report,
                 )
-                report("verifying")
-                # Compatible delivery decodes while encoding with -xerror, then
-                # fully verifies the final MP4. Avoid an extra full input decode.
-                metadata = media.probe(path) if profile == "compatible" else media.verify(path)
-                if choice["has_audio"] and not metadata["has_audio"]:
-                    raise ServiceError(
-                        "invalid_result", "The result is missing its selected audio stream."
-                    )
-                if profile != "mp3" and any(
-                    choice.get(dimension) and metadata.get(dimension) != choice[dimension]
-                    for dimension in ("width", "height")
-                ):
-                    raise ServiceError(
-                        "quality_mismatch",
-                        "The result does not match the selected resolution. Analyze again.",
-                    )
-                if profile == "compatible":
-                    report("converting")
-                    original = path
-                    path, metadata = media.compatible_video(original, metadata, directory)
-                    original.unlink()
-                    report("verifying")
+                path, metadata = media.verify_selected_source(
+                    path, choice, profile, directory, report
+                )
                 quality = sources.quality_height(choice)
                 descriptor = (
                     f"MP3 {payload['bitrate']}kbps"
