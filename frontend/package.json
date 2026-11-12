@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "dev": "vite --host 127.0.0.1",
     "typecheck": "vue-tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "format:check": "prettier --check src index.html vite.config.ts tsconfig.json package.json"
+    "format:check": "prettier --check src tests index.html vite.config.ts tsconfig.json package.json"
   },
   "dependencies": {
     "vue": "^3.5.0"

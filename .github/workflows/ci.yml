@@ -49,6 +49,7 @@ jobs:
         run: |
           npm ci
           npm run format:check
+          npm test
           npm run build
       - name: Real browser integration and screenshots
         run: |
@@ -57,6 +58,7 @@ jobs:
           uv run --no-sync python scripts/check_instagram_ui.py --chromium /usr/bin/chromium
           uv run --no-sync python scripts/check_instagram_gallery_ui.py --chromium /usr/bin/chromium
           uv run --no-sync python scripts/check_pinterest_ui.py --chromium /usr/bin/chromium
+          uv run --no-sync python scripts/check_localization_ui.py --chromium /usr/bin/chromium
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:

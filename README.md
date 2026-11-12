@@ -54,6 +54,7 @@ TikTok video delivery now uses **compatible H.264/AAC MP4** at the selected dime
 - Persist queued/running/completed/failed/cancelled tasks, separate operations and real per-operation progress. Cancel, retry, recover after restart, reuse a result and show file expiry.
 - Default limits: one processing job, 512 MiB per file, 5 GiB media storage, 30 minutes per task, 24-hour results. Configure owner values in `.env`.
 - Graphite/orange Download, Convert, Tasks and Settings pages, keyboard focus/labels, mobile layout and worker diagnostics.
+- English and Ukrainian interface, with a language selector in the top-right header. English is the default; the browser remembers the selected language. Switching keeps the current form and task state, and also works when browser storage is blocked.
 
 Batch upload UI is planned. Pinterest single-pin delivery is implemented in [stage 5](docs/media-service/stage-5.md). Instagram post selection is implemented in [stage 4b](docs/media-service/stage-4b.md), following [stage 4a](docs/media-service/stage-4a.md); TikTok photo selection and ZIP delivery are implemented in [stage 3](docs/media-service/stage-3.md). The original desktop source, assets, copyright and license remain available; [legacy notes](legacy/README.md) explain the separate dependency lists.
 

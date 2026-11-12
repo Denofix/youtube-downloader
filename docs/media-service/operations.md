@@ -6,6 +6,12 @@ Use Docker Compose from the repository root: `docker compose up --build -d --wai
 
 The named local volume `media-data` contains SQLite and generated file directories. This implementation uses SQLite WAL and a Linux worker lock: use one worker and a local filesystem, not a multi-host/network share. The default listener is loopback for a single owner. Windows can run Docker Desktop or use a Linux VM. In a VM, localhost refers to that VM; use its browser or an SSH port forward when viewing from the host.
 
+## Interface language
+
+Use the language selector in the top-right header to choose **English** or **Українська**. English is the default. The selection is stored per browser under `download-convert.language` and restored after reload. When storage is disabled, switching still works for the open page. An unsupported saved value falls back to English.
+
+All four pages, accessible labels, task states, conversion choices, supported error messages, settings descriptions, counters, dates and units follow the selection. Switching does not submit a form, reload the page, clear a selection or modify server tasks. Original media titles, author names, filenames, platform names, codec IDs and technical error codes retain their original values. The API, CLI diagnostics and logs remain in English.
+
 ## Limits, expiry and restart
 
 Defaults are one running job, 50 active jobs, 512 MiB per file, 5 GiB media storage, 30-minute job timeout, two-hour media duration, 24 megapixels per image and 500 animation frames. The container also limits CPU, actual memory and process count. Change owner environment values in `.env` and recreate the services. These are guardrails for a private instance; public multi-user deployment is a separate milestone.
@@ -40,12 +46,16 @@ uv run --no-sync ruff format --check backend tests scripts
 uv run --no-sync pytest -q
 npm --prefix frontend ci
 npm --prefix frontend run format:check
+npm --prefix frontend test
 npm --prefix frontend run build
 uv run --no-sync playwright install --with-deps chromium
 uv run --no-sync python scripts/check_ui.py
+uv run --no-sync python scripts/check_localization_ui.py
 ```
 
 The browser test starts a disposable API/worker, generates tiny local media and exercises desktop/mobile overflow, keyboard focus, errors, uploading, MP3 download, GIF preview, WebP conversion and history after reload. It writes real screenshots to `.ui-artifacts`; CI uploads them. `--chromium /path/to/chromium` selects an installed browser. The environment must allow browser IPC and local navigation.
+
+The localization suite uses owned Pinterest fixtures in a separate disposable instance. It checks all four Ukrainian pages, language persistence, keyboard selection, preserved photo/format/bitrate choices, actual JPEG download and PNG conversion, immediate API errors and stored task errors, blocked storage, unsupported preferences and widths from 320 to 1440 pixels. No live platform access or owner data is required. The frontend unit suite checks interpolation parameters, Ukrainian plural forms, language persistence and translated capability/error labels.
 
 Opt-in live test:
 

@@ -146,6 +146,27 @@ nav {
 .connection i.online {
   background: #a2d2b5;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+.language-picker {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+}
+.language-picker select {
+  width: 122px;
+  min-height: 40px;
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 12px;
+}
 main {
   max-width: 1000px;
   margin: auto;
@@ -863,6 +884,22 @@ footer a:hover {
     gap: 16px;
   }
 }
+@media (max-width: 1200px) {
+  .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+  .header-inner nav {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+  .header-actions {
+    grid-row: 1;
+    grid-column: 2;
+  }
+}
 @media (max-width: 640px) {
   .header-inner {
     flex-direction: column;
@@ -882,9 +919,17 @@ footer a:hover {
     gap: 3px;
   }
   .nav-item {
-    padding: 10px;
+    position: relative;
+    flex: 1;
+    flex-direction: column;
+    padding: 8px 2px;
     font-size: 11px;
-    gap: 6px;
+    gap: 3px;
+  }
+  .nav-item .count {
+    position: absolute;
+    top: 0;
+    right: 5px;
   }
   .nav-item svg {
     width: 15px;
@@ -1043,6 +1088,26 @@ footer a:hover {
   }
   .advanced dd {
     margin: 0;
+  }
+}
+@media (max-width: 420px) {
+  .brand {
+    font-size: 14px;
+    gap: 7px;
+  }
+  .language-picker > svg {
+    display: none;
+  }
+  .language-picker select {
+    width: 112px;
+  }
+}
+@media (max-width: 360px) {
+  .brand {
+    font-size: 13px;
+  }
+  .nav-item {
+    font-size: 10px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
