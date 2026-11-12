@@ -6,7 +6,7 @@ Analyze an individual YouTube/TikTok/Instagram video, a TikTok/Instagram photo p
 
 **Verification:** 256 backend/media/process cases pass locally. [Compatible TikTok playback verification](docs/media-service/tiktok-playback.md) passed all four offered source renditions for the supplied post, including 1080 × 1920 H.265 → H.264/AAC MP4, plus MP3 and full decoding/HTTP retrieval. The owner confirmed compatible TikTok playback in Windows Media Player and a public SoundCloud M4A download/playback on 11 November 2026. An unprotected SoundCloud control track passes M4A/MP3 delivery; the supplied remix returns DRM protection. The [source failure follow-up](docs/media-service/source-failure-followup.md), [YouTube owner verification](docs/media-service/owner-verification-2026-11-11.json) and earlier [CI evidence](docs/media-service/stage-2.md) are retained separately. TikTok [photo-post verification](docs/media-service/stage-3.md) adds a real single image and two-image carousel, original bytes, ZIP and PNG conversion; the owner has also confirmed photo/ZIP delivery. Only recorded scenarios are confirmed.
 
-Instagram [stage 4a](docs/media-service/stage-4a.md) passed a real 720 × 1280 H.264/AAC Reel download and MP3 delivery, plus two silent video samples. The owner confirmed Reel download/playback. [Stage 4b](docs/media-service/stage-4b.md) adds Instagram photos and selected carousel items, including videos, with real photo and video-carousel reports. Access varies by publication; owner testing of the new gallery remains pending.
+Instagram [stage 4a](docs/media-service/stage-4a.md) passed a real 720 × 1280 H.264/AAC Reel download and MP3 delivery, plus two silent video samples. The owner confirmed Reel download/playback. [Stage 4b](docs/media-service/stage-4b.md) adds Instagram photos and selected carousel items, including videos, with real photo and video-carousel reports. Its [implementation CI](https://github.com/Denofix/youtube-downloader/actions/runs/43139081555) passed 256 tests, all four browser suites and Docker Compose; focused desktop/mobile and gallery screenshots were visually reviewed. Access varies by publication; owner testing of the new gallery remains pending.
 
 ## Start
 
@@ -32,8 +32,8 @@ Actual running interface, captured by the [browser integration run](https://gith
 
 ![Task history](docs/screenshots/tasks-desktop.png)
 
-| Mobile download | Mobile tasks |
-| --- | --- |
+| Mobile download                                          | Mobile tasks                                       |
+| -------------------------------------------------------- | -------------------------------------------------- |
 | ![Mobile download](docs/screenshots/download-mobile.png) | ![Mobile tasks](docs/screenshots/tasks-mobile.png) |
 
 </details>
@@ -58,16 +58,16 @@ Pinterest and batch upload UI are planned. Instagram post selection is implement
 
 The browser uses the same-origin API. FastAPI streams bounded uploads and persists tasks in SQLite. A separate Linux worker atomically claims one task and runs it in a killable process group. Source/media adapters normalize formats or inspect contents. Only verified results become opaque asset IDs in generated private directories. API and worker share a persistent local volume; no external queue broker is required.
 
-| Path | Purpose |
-| --- | --- |
-| `backend/service/api.py` | Validated API, diagnostics and compiled frontend |
-| `backend/service/worker.py` | Claims, process supervision, cancellation, limits and heartbeat |
-| `backend/service/runner.py` | Isolated task execution |
-| `backend/service/sources.py` | URL validation, metadata normalization and exact selection |
-| `backend/service/media.py` | Content inspection, capabilities, conversion and full decoding |
-| `backend/service/store.py` | SQLite tasks/assets, recovery, retention and cleanup |
-| `frontend/` | Vue 3 / TypeScript / Vite |
-| `tests/`, `scripts/` | Generated fixtures, process/browser checks and opt-in live verification |
+| Path                         | Purpose                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `backend/service/api.py`     | Validated API, diagnostics and compiled frontend                        |
+| `backend/service/worker.py`  | Claims, process supervision, cancellation, limits and heartbeat         |
+| `backend/service/runner.py`  | Isolated task execution                                                 |
+| `backend/service/sources.py` | URL validation, metadata normalization and exact selection              |
+| `backend/service/media.py`   | Content inspection, capabilities, conversion and full decoding          |
+| `backend/service/store.py`   | SQLite tasks/assets, recovery, retention and cleanup                    |
+| `frontend/`                  | Vue 3 / TypeScript / Vite                                               |
+| `tests/`, `scripts/`         | Generated fixtures, process/browser checks and opt-in live verification |
 
 ## Native Linux development
 

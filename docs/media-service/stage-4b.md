@@ -22,16 +22,20 @@ The link field now has one continuous focus indicator around the complete field 
 
 Public checks on 12 November 2026 used the normal API and production worker, without configured cookies:
 
-| Case | Result |
-| --- | --- |
-| [Single photo](live-instagram-single-photo-2026-11-12.json) | JPEG 1080 × 1350, 383,468 bytes; preview, unchanged original and PNG conversion passed |
-| [Five-photo carousel](live-instagram-photo-carousel-2026-11-12.json) | All five previews; selected positions 1 and 5, both 1080 × 1080 JPEGs; 298,394-byte ZIP with identical bytes/order and PNG conversion passed |
-| [Two-video carousel](live-instagram-video-carousel-2026-11-12.json) | Both returned 640 × 640 H.264 renditions fully decoded and delivered; a 5,208,059-byte ZIP preserved files/order. Those returned renditions have no audio |
-| [Reel regression](live-instagram-reel-regression-2026-11-12.json) | 720 × 1280 H.264/AAC stereo MP4 and 192 kbps MP3 passed again after the adapter change |
+| Case                                                                 | Result                                                                                                                                                    |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Single photo](live-instagram-single-photo-2026-11-12.json)          | JPEG 1080 × 1350, 383,468 bytes; preview, unchanged original and PNG conversion passed                                                                    |
+| [Five-photo carousel](live-instagram-photo-carousel-2026-11-12.json) | All five previews; selected positions 1 and 5, both 1080 × 1080 JPEGs; 298,394-byte ZIP with identical bytes/order and PNG conversion passed              |
+| [Two-video carousel](live-instagram-video-carousel-2026-11-12.json)  | Both returned 640 × 640 H.264 renditions fully decoded and delivered; a 5,208,059-byte ZIP preserved files/order. Those returned renditions have no audio |
+| [Reel regression](live-instagram-reel-regression-2026-11-12.json)    | 720 × 1280 H.264/AAC stereo MP4 and 192 kbps MP3 passed again after the adapter change                                                                    |
 
 Mixed photo/video delivery and per-item MP3 are covered by controlled native-product fixtures with real files. The public carousel above contains two videos, so it is not claimed as a live mixed-post or carousel-MP3 pass. Public source media and owner screenshots are not republished.
 
-The browser suite adds actual single-photo/mixed-file downloads, source-ordered ZIP bytes, retained conversion, per-item MP3, reload/history, long titles and mobile/desktop overflow. Existing browser checks also assert that URL keyboard focus has no nested outline and capture focused desktop/mobile views. These are enabled in CI, but not recorded as passed merely because they exist. Local Chromium is blocked before startup by `socket() ... Operation not permitted`; Docker is unavailable in this development environment. Parent CI also remains queued without jobs. The new stage PR records the current CI result; owner-instance testing of the new gallery and focus appearance remains pending.
+GitHub Actions passed for implementation commit `5018dad37c814eedae39350e7aa0f6223c69a95e`: [push run](https://github.com/Denofix/youtube-downloader/actions/runs/43139081555) and [PR run](https://github.com/Denofix/youtube-downloader/actions/runs/43139162110). Both backend/frontend checks and the production Docker Compose build/start passed. The CI backend run passed all 256 tests.
+
+All four browser suites passed: general media conversion/playback, TikTok photo selection including keyboard navigation and long titles, Instagram video delivery/playback, and Instagram single-photo/mixed-carousel delivery. They exercise actual files, source-ordered ZIP bytes, retained conversion, per-item MP3, reload/history and mobile/desktop overflow using clearly identified owned fixtures. Focus checks confirm the nested URL input has no outline. The CI screenshot archive checksum was verified, and focused desktop/mobile views plus gallery desktop/mobile/results views were visually reviewed: one outline encloses the complete link field and icon, with no horizontal overflow. See the [CI evidence](ci-instagram-gallery-2026-11-12.json).
+
+Local Chromium cannot start because of the development environment's socket restriction, and Docker is unavailable locally; the successful browser and container checks above ran in GitHub Actions. Owner-instance testing of the new gallery and focus appearance remains pending.
 
 ## Windows update
 
