@@ -483,7 +483,10 @@ def normalize(info: dict, url: str):
                 "has_audio": sound or len(parts) == 2,
                 **(
                     {"audio_unknown": True}
-                    if platform == "Pinterest" and f.get("acodec") == "unknown" and len(parts) == 1
+                    if platform == "Pinterest"
+                    and video
+                    and f.get("acodec") == "unknown"
+                    and len(parts) == 1
                     else {}
                 ),
                 "operation": "merge" if len(parts) == 2 else "download",

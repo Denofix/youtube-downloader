@@ -136,8 +136,48 @@ def main():
             and streams[0]["codec_name"] == "mp3"
             and int(streams[0]["bit_rate"]) == 128000
         )
+        analyze("423456789", "video")
+        expect(page.get_by_label("Source format")).to_contain_text("with audio")
+        expect(page.get_by_label("Output preset").locator("option[value='mp3']")).to_be_enabled()
+        expect(page.get_by_text("Separate tracks · lossless merge", exact=True)).to_be_visible()
+        page.screenshot(
+            path=str(args.screenshots / "pinterest-separate-audio-mobile.png"), full_page=True
+        )
+        page.get_by_role("button", name="Add download to queue", exact=True).click()
+        expect(page.get_by_role("link", name="Download result", exact=True)).to_have_count(
+            4, timeout=30000
+        )
+        with page.expect_download() as saved:
+            page.get_by_role("link", name="Download result", exact=True).first.click()
+        movie = Path(temporary) / "merged.mp4"
+        saved.value.save_as(movie)
+        streams = json.loads(
+            subprocess.check_output(
+                ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(movie)]
+            )
+        )["streams"]
+        assert any(
+            s["codec_type"] == "video" and s["width"] == 160 and s["height"] == 90 for s in streams
+        )
+        assert any(s["codec_type"] == "audio" and s["codec_name"] == "aac" for s in streams)
+        page.get_by_role("button", name="View formats", exact=True).first.click()
+        page.get_by_label("Output preset").select_option("mp3")
+        page.get_by_role("button", name="Add download to queue", exact=True).click()
+        expect(page.get_by_role("link", name="Download result", exact=True)).to_have_count(
+            5, timeout=30000
+        )
+        with page.expect_download() as saved:
+            page.get_by_role("link", name="Download result", exact=True).first.click()
+        audio = Path(temporary) / "separate-audio.mp3"
+        saved.value.save_as(audio)
+        streams = json.loads(
+            subprocess.check_output(
+                ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(audio)]
+            )
+        )["streams"]
+        assert len(streams) == 1 and streams[0]["codec_name"] == "mp3"
         page.reload(wait_until="networkidle")
-        expect(page.get_by_role("link", name="Download result", exact=True)).to_have_count(3)
+        expect(page.get_by_role("link", name="Download result", exact=True)).to_have_count(5)
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
         page.screenshot(path=str(args.screenshots / "pinterest-results-mobile.png"), full_page=True)
         assert not errors, errors
@@ -151,6 +191,7 @@ def main():
                     "original JPEG bytes and local preview",
                     "animated GIF frames and retained MP4 conversion",
                     "native progressive video with actual audio",
+                    "HLS separate audio without codec: lossless video merge and MP3 enabled",
                     "unknown audio labelled honestly",
                     "128 kbps MP3",
                     "reload history and desktop/mobile long-title overflow",

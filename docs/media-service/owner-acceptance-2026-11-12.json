@@ -9,16 +9,21 @@
     "instagram_photo_download": true,
     "instagram_photo_carousel_subset_delivery": true,
     "instagram_video_download_with_audio": true,
-    "retained_instagram_video_to_mp3_download": true
+    "retained_instagram_video_to_mp3_download": true,
+    "pinterest_photo_download_and_open": true,
+    "pinterest_video_download_with_audio": true,
+    "pinterest_gif_download_and_open": true
   },
   "not_explicitly_owner_confirmed": [
     "Instagram source-preset MP3 separately from retained video conversion",
     "Instagram mixed photo/video carousel",
-    "keyboard focus and long-title browser assertions"
+    "keyboard focus and long-title browser assertions",
+    "Pinterest MP3 fix after the separate-audio follow-up"
   ],
   "follow_up": {
     "url_field_double_focus_border": "Fixed in stage 4b; retain one visible indicator around the icon and complete field.",
-    "instagram_stage_4b": "Owner confirmed photos, a selected photo-carousel subset, video with audio and retained video-to-MP3 delivery on 12 November 2026; screenshots show 14 analyzed photos and selected positions 1, 2 and 13."
+    "instagram_stage_4b": "Owner confirmed photos, a selected photo-carousel subset, video with audio and retained video-to-MP3 delivery on 12 November 2026; screenshots show 14 analyzed photos and selected positions 1, 2 and 13.",
+    "pinterest_separate_audio_mp3": "Owner reported MP3 disabled for pin 737394139034692812 while another pin offered it. Native HLS returned a separate audio rendition without codec metadata; fixed and live-tested in all four resolutions plus MP3. Owner retest of the fix remains pending."
   },
   "installed_branch": "feat/instagram-gallery",
   "installed_commit": "Not separately reported; owner fetch/switch/pull and successful Docker build/start are shown in the conversation."

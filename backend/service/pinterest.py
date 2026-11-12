@@ -137,6 +137,13 @@ def read_pin(url, config, engine=None):
                     "no_formats", "Pinterest did not return a usable video stream for this pin."
                 )
             for item in raw["formats"]:
+                # EXT-X-MEDIA:TYPE=AUDIO proves there is an audio rendition even
+                # when the native HLS parser does not propagate its codec.
+                if item.get("vcodec") == "none":
+                    if not item.get("acodec"):
+                        item["acodec"] = "unknown"
+                    if item.get("acodec") != "none" and item.get("ext") == "mp4":
+                        item["ext"] = "m4a"
                 # Native progressive MP4 metadata omits codecs and audio presence.
                 # Manifest formats retain their explicit codec/audio facts.
                 if item.get("width") and item.get("height") and not item.get("vcodec"):

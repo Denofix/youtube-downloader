@@ -18,7 +18,7 @@ Limits reuse existing settings: one queued task, 512 MiB per result by default, 
 
 ## Verification
 
-**309 local tests pass**, including 53 Pinterest cases for native image/GIF/video and one-page video metadata, exact original bytes, local previews, GIF frame limits/cover rejection, retained conversion, MP3, silent video, changed identity/quality/format, strict share hops and private diagnostic redaction. Existing source, queue, process, photo/gallery and conversion tests also pass. Ruff, frontend formatting, TypeScript and production build pass. The owned browser fixture worker passed an actual local API/queue smoke check for all three pin types.
+**314 local tests pass**, including 58 Pinterest cases for native image/GIF/video and one-page video metadata, exact original bytes, local previews, GIF frame limits/cover rejection, retained conversion, MP3, silent video, changed identity/quality/format, strict share hops and private diagnostic redaction. Existing source, queue, process, photo/gallery and conversion tests also pass. Ruff, frontend formatting, TypeScript and production build pass. The owned browser fixture worker passed an actual local API/queue smoke check for all three pin types.
 
 Public checks on 12 November 2026 used the ordinary API and production worker without configured cookies:
 
@@ -31,7 +31,15 @@ Public checks on 12 November 2026 used the ordinary API and production worker wi
 
 The browser suite uses clearly labelled owned local files through the real native adapter, API, SQLite queue and worker. It checks JPEG bytes, GIF frames and MP4 conversion, video/audio delivery, 128 kbps MP3, honest unknown-audio labels, retained history and long-title desktop/mobile layout. The workflow runs this alongside the four existing suites and production Docker Compose build/start. The feature PR records actual CI conclusions and screenshot review; enabling a test alone is not treated as a pass. Local Chromium startup is blocked by the development environment's socket restriction, and Docker is unavailable locally.
 
-Live source media and owner screenshots are not republished. Public examples verify those exact scenarios and do not imply access to every pin. Pinterest owner-instance acceptance is still pending.
+Live source media and owner screenshots are not republished. Public examples verify those exact scenarios and do not imply access to every pin. The owner confirmed photo download/opening, video with audio and GIF download/opening. Owner retest of the separate-audio MP3 fix below remains pending.
+
+## Separate HLS audio follow-up
+
+The owner reported MP3 disabled for [pin 737394139034692812](https://www.pinterest.com/pin/737394139034692812/), with every offered video marked `no audio`. Its HLS master actually declares a separate audio rendition. The locked extractor returns that rendition with `vcodec=none` but omits `acodec`; the previous normalization discarded it. The adapter now preserves this positive audio declaration with an unknown codec and uses M4A for the audio-only MP4 container. Each video is paired with its own pin's audio, copied into MP4 without re-encoding, and can produce MP3 from that audio alone. Progressive unknown-audio behavior remains separate.
+
+The [live regression report](live-pinterest-separate-audio-2026-11-12.json) records the pre-fix development run and successful post-fix delivery in all four offered dimensions: 230 × 130, 368 × 208, 552 × 312 and 736 × 416. Every final MP4 contains H.264 and stereo HE-AACv2; the MP3 at 192 kbps fully decodes and is retrieved over HTTP. Five added integration cases exercise the real native HLS parser, HTTP playlists/segments, MP4 merge, MP3 and original audio delivery, genuinely silent HLS rejection, and refusal to lose a selected audio track after refresh. The Pinterest browser suite also exercises the grouped-audio source and checks that MP3 is enabled.
+
+After updating, analyze the link again. Saved analysis cards retain their original metadata.
 
 ## Windows update
 

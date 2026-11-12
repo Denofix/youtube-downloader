@@ -8,6 +8,7 @@ from urllib.error import HTTPError
 
 import pytest
 from conftest import work
+from hls_fixture import grouped_hls
 from PIL import Image
 from service import photos, sources
 from service.errors import ServiceError
@@ -360,3 +361,87 @@ def test_gif_frame_limit_is_enforced_before_publishing(client, store, pin, files
     assert client.post("/api/analyze", json={"url": URL}).status_code == 202
     task = work(store)
     assert task["state"] == "failed" and task["error"]["code"] == "image_limit"
+
+
+def hls_video(pin, files, media_server, silent=False):
+    master = grouped_hls(files, files / "sample.mp4", silent)
+    pin["data"]["videos"] = {
+        "video_list": {
+            "V_HLSV3_MOBILE": {
+                "url": media_server + "/" + master.name,
+                "width": 160,
+                "height": 90,
+                "duration": 1200,
+            }
+        }
+    }
+
+
+@pytest.mark.parametrize("profile", ["original", "mp3", "audio-original"])
+def test_hls_separate_audio_without_codec_is_preserved_and_mp3_is_enabled(
+    client, store, pin, files, media_server, profile
+):
+    hls_video(pin, files, media_server)
+    task = analyze(client, store)
+    choices = task["result"]["choices"]
+    audio = next(c for c in choices if c["kind"] == "audio")
+    assert audio["has_audio"] and not audio.get("audio_unknown")
+    assert audio["audio_codec"] == "unknown" and audio["container"] == "m4a"
+    choice = (
+        audio if profile == "audio-original" else next(c for c in choices if c["kind"] == "video")
+    )
+    assert choice["has_audio"] and not choice.get("audio_unknown")
+    if profile != "audio-original":
+        assert choice["container"] == "mp4" and choice["operation"] == "merge"
+        assert len(choice["source_format_ids"]) == 2
+    assert (
+        client.post(
+            "/api/downloads",
+            json={
+                "analysis_id": task["id"],
+                "choice_id": choice["id"],
+                "profile": "mp3" if profile == "mp3" else "original",
+                "bitrate": 128,
+            },
+        ).status_code
+        == 202
+    )
+    result = work(store)
+    assert result["state"] == "completed", result
+    asset = store.asset(result["result"]["asset_id"])
+    assert asset["metadata"]["has_audio"] is True
+    assert asset["metadata"]["audio_codec"] == ("mp3" if profile == "mp3" else "aac")
+    assert asset["metadata"]["kind"] == ("video" if profile == "original" else "audio")
+    if profile == "original":
+        assert (asset["metadata"]["width"], asset["metadata"]["height"]) == (160, 90)
+    assert client.get(f"/api/assets/{asset['id']}/file").status_code == 200
+
+
+def test_hls_silent_video_still_disables_mp3(client, store, pin, files, media_server):
+    hls_video(pin, files, media_server, silent=True)
+    task = analyze(client, store)
+    choice = task["result"]["choices"][0]
+    assert choice["has_audio"] is False and not choice.get("audio_unknown")
+    response = client.post(
+        "/api/downloads",
+        json={"analysis_id": task["id"], "choice_id": choice["id"], "profile": "mp3"},
+    )
+    assert response.status_code == 400 and response.json()["detail"]["code"] == "no_audio"
+
+
+def test_hls_missing_selected_audio_cannot_fall_back_to_silent_video(
+    client, store, pin, files, media_server
+):
+    hls_video(pin, files, media_server)
+    task = analyze(client, store)
+    choice = next(c for c in task["result"]["choices"] if c["kind"] == "video")
+    grouped_hls(files, files / "sample.mp4", silent=True)
+    assert (
+        client.post(
+            "/api/downloads", json={"analysis_id": task["id"], "choice_id": choice["id"]}
+        ).status_code
+        == 202
+    )
+    result = work(store)
+    assert result["state"] == "failed" and result["error"]["code"] == "format_unavailable"
+    assert result["result"] is None

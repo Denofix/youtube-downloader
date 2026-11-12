@@ -1,0 +1,246 @@
+{
+  "checked_at": "2026-11-12T15:10:27.864415+00:00",
+  "source": "https://www.pinterest.com/pin/737394139034692812/",
+  "quality_selection": "all",
+  "platform": "Pinterest",
+  "publication_type": "video",
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "completed",
+      "error": null,
+      "timings": {
+        "total_seconds": 10.888,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 10.888
+        }
+      }
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": ["V_HLSV3_MOBILE-233", "V_HLSV3_MOBILE-audio-1"],
+      "selected_height": 130,
+      "selected_width": 230,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 11.442,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 9.95,
+          "downloading": 0.847,
+          "preparing": 0.17,
+          "merging": 0.265,
+          "verifying": 0.209
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV3_MOBILE-233",
+        "V_HLSV3_MOBILE-audio-1"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 8.150998,
+        "width": 230,
+        "height": 130,
+        "video_codec": "h264",
+        "pixel_format": "yuvj420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "HE-AACv2",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 175405
+    },
+    {
+      "scenario": "download mp3",
+      "state": "completed",
+      "source_format_ids": ["V_HLSV3_MOBILE-233", "V_HLSV3_MOBILE-audio-1"],
+      "selected_height": 130,
+      "selected_width": 230,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 10.739,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 9.799,
+          "downloading": 0.525,
+          "preparing": 0.124,
+          "converting": 0.174,
+          "verifying": 0.118
+        }
+      },
+      "resolved_source_format_ids": ["V_HLSV3_MOBILE-audio-1"],
+      "metadata": {
+        "kind": "audio",
+        "format": "mp3",
+        "duration": 8.202449,
+        "width": null,
+        "height": null,
+        "video_codec": null,
+        "pixel_format": null,
+        "video_profile": null,
+        "audio_codec": "mp3",
+        "audio_profile": null,
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 197633
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": ["V_HLSV3_MOBILE-307", "V_HLSV3_MOBILE-audio-1"],
+      "selected_height": 208,
+      "selected_width": 368,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 10.792,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 9.376,
+          "downloading": 0.937,
+          "preparing": 0.153,
+          "merging": 0.169,
+          "verifying": 0.157
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV3_MOBILE-307",
+        "V_HLSV3_MOBILE-audio-1"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 8.150998,
+        "width": 368,
+        "height": 208,
+        "video_codec": "h264",
+        "pixel_format": "yuvj420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "HE-AACv2",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 250443
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": ["V_HLSV3_MOBILE-426", "V_HLSV3_MOBILE-audio-1"],
+      "selected_height": 312,
+      "selected_width": 552,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 11.364,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 9.982,
+          "downloading": 0.914,
+          "preparing": 0.11,
+          "merging": 0.173,
+          "verifying": 0.185
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV3_MOBILE-426",
+        "V_HLSV3_MOBILE-audio-1"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 8.150998,
+        "width": 552,
+        "height": 312,
+        "video_codec": "h264",
+        "pixel_format": "yuvj420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "HE-AACv2",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 370439
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": ["V_HLSV3_MOBILE-607", "V_HLSV3_MOBILE-audio-1"],
+      "selected_height": 416,
+      "selected_width": 736,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 11.514,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 10.174,
+          "downloading": 0.831,
+          "preparing": 0.094,
+          "merging": 0.176,
+          "verifying": 0.239
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV3_MOBILE-607",
+        "V_HLSV3_MOBILE-audio-1"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 8.150998,
+        "width": 736,
+        "height": 416,
+        "video_codec": "h264",
+        "pixel_format": "yuvj420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "HE-AACv2",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 553751
+    }
+  ],
+  "regression": {
+    "before_fix_development_run": {
+      "selected_has_audio": false,
+      "source_format_ids": ["V_HLSV3_MOBILE-607"],
+      "output_has_audio": false
+    },
+    "cause": "Native HLS audio rendition had vcodec=none but omitted acodec; the service discarded it before pairing tracks.",
+    "correction": "Preserve this declared audio rendition with unknown codec, use M4A for its MP4 audio container, pair video with the same-pin audio and enable MP3. Unknown codec does not mean unknown audio presence for a declared audio-only rendition."
+  }
+}

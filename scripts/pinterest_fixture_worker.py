@@ -8,6 +8,7 @@ import threading
 import time
 from pathlib import Path
 
+from hls_fixture import grouped_hls
 from PIL import Image
 from service import photos, runner
 from service.store import Store
@@ -61,16 +62,23 @@ def main():
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         base = f"http://127.0.0.1:{server.server_port}"
+        master = grouped_hls(root, root / "owned.mp4")
 
         def call(self, resource, pin_id, options):
-            if pin_id not in {"123456789", "223456789", "323456789"}:
+            if pin_id not in {"123456789", "223456789", "323456789", "423456789"}:
                 raise ExtractorError("This fixture only serves the owned pins", expected=True)
             animated = pin_id == "223456789"
             data = {
                 "id": pin_id,
                 "privacy": "public",
                 "title": "Owned Pinterest "
-                + ("animation" if animated else "video" if pin_id == "323456789" else "image")
+                + (
+                    "animation"
+                    if animated
+                    else "video"
+                    if pin_id in {"323456789", "423456789"}
+                    else "image"
+                )
                 + " (local fixture) — "
                 + "LongPinTitle" * 25,
                 "images": {
@@ -86,6 +94,17 @@ def main():
                     "video_list": {
                         "V_720P": {
                             "url": base + "/owned.mp4",
+                            "width": 160,
+                            "height": 90,
+                            "duration": 1200,
+                        }
+                    }
+                }
+            if pin_id == "423456789":
+                data["videos"] = {
+                    "video_list": {
+                        "V_HLSV3_MOBILE": {
+                            "url": base + "/" + master.name,
                             "width": 160,
                             "height": 90,
                             "duration": 1200,
