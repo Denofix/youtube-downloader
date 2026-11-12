@@ -1,9 +1,11 @@
-"""Opt-in TikTok/Instagram photo analysis, selected originals, ZIP and conversion."""
+"""Opt-in TikTok/Instagram/Pinterest image or GIF originals, ZIP and conversion."""
 
 import argparse
 import hashlib
 import io
 import json
+import subprocess
+import tempfile
 import time
 import zipfile
 from contextlib import nullcontext
@@ -17,7 +19,9 @@ from PIL import Image
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("url", help="One public TikTok or Instagram photo-post permalink")
+    parser.add_argument(
+        "url", help="One public TikTok/Instagram photo post or Pinterest image/GIF pin"
+    )
     parser.add_argument("--base", default="http://localhost:8080")
     parser.add_argument("--ephemeral", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
@@ -112,6 +116,7 @@ def main():
                                 "height": image.height,
                                 "bytes": len(response.content),
                                 "sha256": digest,
+                                "frames": getattr(image, "n_frames", 1),
                                 "http_status": response.status_code,
                             }
                         )
@@ -134,15 +139,18 @@ def main():
                             "bytes": len(response.content),
                         }
                     )
+                output = "mp4" if selection[0].get("kind") == "animation" else "png"
                 converted = wait(
                     post(
                         "/conversions",
-                        {"asset_id": files[0]["asset_id"], "parameters": {"output": "png"}},
+                        {"asset_id": files[0]["asset_id"], "parameters": {"output": output}},
                     )
                 )
                 report["checks"].append(
                     {
-                        "scenario": "retained photo to PNG",
+                        "scenario": "retained GIF to MP4"
+                        if output == "mp4"
+                        else "retained photo to PNG",
                         "state": converted["state"],
                         "error": converted["error"],
                     }
@@ -152,9 +160,35 @@ def main():
                         "/api/assets/" + converted["result"]["asset_id"] + "/file"
                     )
                     response.raise_for_status()
-                    with Image.open(io.BytesIO(response.content)) as image:
-                        image.load()
-                        assert image.format == "PNG"
+                    if output == "png":
+                        with Image.open(io.BytesIO(response.content)) as image:
+                            image.load()
+                            assert image.format == "PNG"
+                    else:
+                        with tempfile.NamedTemporaryFile(suffix=".mp4") as movie:
+                            movie.write(response.content)
+                            movie.flush()
+                            info = json.loads(
+                                subprocess.check_output(
+                                    [
+                                        "ffprobe",
+                                        "-v",
+                                        "error",
+                                        "-show_streams",
+                                        "-show_format",
+                                        "-of",
+                                        "json",
+                                        movie.name,
+                                    ]
+                                )
+                            )
+                        assert "mp4" in info["format"]["format_name"]
+                        assert any(s.get("codec_type") == "video" for s in info["streams"])
+                        report["converted_file"] = {
+                            "format": info["format"]["format_name"],
+                            "bytes": len(response.content),
+                            "http_status": response.status_code,
+                        }
         report["versions"] = client.get("/api/settings").json()["versions"]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")

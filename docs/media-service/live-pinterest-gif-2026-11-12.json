@@ -1,0 +1,70 @@
+{
+  "checked_at": "2026-11-12T14:34:20.807778+00:00",
+  "source": "https://www.pinterest.com/pin/785315253762854559/",
+  "checks": [
+    {
+      "scenario": "photo analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "all local previews",
+      "state": "completed",
+      "count": 1
+    },
+    {
+      "scenario": "selected original photos",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "retained GIF to MP4",
+      "state": "completed",
+      "error": null
+    }
+  ],
+  "canonical_source": "https://www.pinterest.com/pin/785315253762854559/",
+  "item_count": 1,
+  "analysis_timings": {
+    "total_seconds": 9.338,
+    "stages": {
+      "starting": 0.0,
+      "analyzing": 4.496,
+      "downloading": 4.758,
+      "verifying": 0.084
+    }
+  },
+  "download_timings": {
+    "total_seconds": 0.092,
+    "stages": {
+      "starting": 0.0,
+      "preparing": 0.092
+    }
+  },
+  "files": [
+    {
+      "position": 1,
+      "format": "GIF",
+      "width": 400,
+      "height": 400,
+      "bytes": 106361,
+      "sha256": "cfd740bfbcd3c5eb03e1f4a3b4d01a59baa1faf4b237f1dc1cd124e26e09c618",
+      "frames": 4,
+      "http_status": 200
+    }
+  ],
+  "converted_file": {
+    "format": "mov,mp4,m4a,3gp,3g2,mj2",
+    "bytes": 16138,
+    "http_status": 200
+  },
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  }
+}
