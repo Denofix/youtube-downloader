@@ -57,7 +57,7 @@ def main():
         )
         assert page.evaluate("localStorage.getItem('download-convert.language')") == "uk"
 
-        for width in (320, 390, 768, 1440):
+        for width in (320, 390, 768, 1000, 1200, 1440):
             page.set_viewport_size({"width": width, "height": 1050})
             assert_fits(page)
             if width in (390, 1440):
@@ -113,12 +113,14 @@ def main():
         page.screenshot(path=str(args.screenshots / "language-uk-tasks-mobile.png"), full_page=True)
 
         page.get_by_role("button", name="Конвертувати фото 1", exact=True).click()
-        operations = page.get_by_label("Що ви хочете зробити?", exact=True)
+        operations = page.get_by_role("combobox", name="Що ви хочете зробити?", exact=True)
         expect(operations).to_contain_text("Перетворити зображення на PNG")
         operations.select_option("webp")
         filename = page.locator(".filename").inner_text()
         page.get_by_label("Мова", exact=True).select_option("en")
-        expect(page.get_by_label("What would you like to do?", exact=True)).to_have_value("webp")
+        expect(
+            page.get_by_role("combobox", name="What would you like to do?", exact=True)
+        ).to_have_value("webp")
         expect(page.locator(".filename")).to_have_text(filename)
         page.get_by_label("Language", exact=True).select_option("uk")
         expect(operations).to_have_value("webp")
@@ -139,17 +141,23 @@ def main():
             "https://www.pinterest.com/pin/423456789/"
         )
         page.get_by_role("button", name="Аналізувати посилання", exact=True).click()
-        preset = page.get_by_label("Профіль результату", exact=True)
+        preset = page.get_by_role("combobox", name="Профіль результату", exact=True)
         expect(preset).to_be_visible(timeout=30000)
         preset.select_option("mp3")
         page.get_by_text("Додатково · джерело та кодування", exact=True).click()
-        page.get_by_label("Бітрейт результату MP3", exact=True).select_option("128")
+        page.get_by_role("combobox", name="Бітрейт результату MP3", exact=True).select_option("128")
         page.get_by_label("Мова", exact=True).select_option("en")
-        expect(page.get_by_label("Output preset", exact=True)).to_have_value("mp3")
-        expect(page.get_by_label("MP3 output bitrate", exact=True)).to_have_value("128")
+        expect(page.get_by_role("combobox", name="Output preset", exact=True)).to_have_value("mp3")
+        expect(page.get_by_role("combobox", name="MP3 output bitrate", exact=True)).to_have_value(
+            "128"
+        )
         page.get_by_label("Language", exact=True).select_option("uk")
-        expect(page.get_by_label("Бітрейт результату MP3", exact=True)).to_have_value("128")
-        expect(page.get_by_label("Формат джерела", exact=True)).to_contain_text("зі звуком")
+        expect(
+            page.get_by_role("combobox", name="Бітрейт результату MP3", exact=True)
+        ).to_have_value("128")
+        expect(page.get_by_role("combobox", name="Формат джерела", exact=True)).to_contain_text(
+            "зі звуком"
+        )
         assert_fits(page)
         page.screenshot(path=str(args.screenshots / "language-uk-mp3-mobile.png"), full_page=True)
 

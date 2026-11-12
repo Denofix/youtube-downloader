@@ -154,6 +154,7 @@ nav {
 }
 .language-picker {
   display: inline-flex;
+  flex-direction: row;
   align-items: center;
   gap: 6px;
   margin: 0;
@@ -883,7 +884,7 @@ footer a:hover {
     gap: 16px;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .header-inner {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
