@@ -248,6 +248,7 @@ h3 {
 }
 .url-field:focus-within {
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 input,
 select {
@@ -268,8 +269,10 @@ input::placeholder {
   border: 0;
   background: none;
   padding: 13px 12px;
-  outline-offset: -2px;
   font-size: 12px;
+}
+.url-field input:focus-visible {
+  outline: none;
 }
 .primary,
 .secondary {
@@ -1097,9 +1100,34 @@ footer a:hover {
   object-fit: contain;
   background: #0d1015;
 }
-.photo-option > span {
+.photo-selection {
+  display: block;
+  cursor: pointer;
+}
+.photo-selection > span {
+  display: block;
   padding: 0 12px 12px;
   line-height: 1.7;
+}
+.item-controls {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+.item-controls label {
+  min-width: 0;
+}
+.item-controls select {
+  padding: 9px 6px;
+  font-size: 11px;
+}
+.photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  color: var(--muted);
+  background: #0d1015;
 }
 .photo-results {
   display: grid;
@@ -1132,7 +1160,8 @@ footer a:hover {
   .photo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .photo-option img {
+  .photo-option img,
+  .photo-option .photo-placeholder {
     height: 150px;
   }
 }

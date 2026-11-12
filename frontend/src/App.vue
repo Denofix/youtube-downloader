@@ -11,6 +11,7 @@ import {
   type Analysis,
   type Asset,
   type Choice,
+  type PhotoItem,
   type ServerSettings,
   type Task,
 } from "./api";
@@ -35,6 +36,9 @@ const analyzingId = ref(""),
   analysisId = ref("");
 const analysis = ref<Analysis | null>(null),
   photoIds = ref<string[]>([]),
+  itemOptions = ref<
+    Record<string, { choice_id: string; profile: string; bitrate: number }>
+  >({}),
   choiceId = ref(""),
   profile = ref("original"),
   bitrate = ref(192);
@@ -90,9 +94,25 @@ function useAnalysis(task: Task) {
   }
   const incoming = task.result as Analysis;
   analysisId.value = task.id;
-  if (incoming.kind === "photos") {
+  if (incoming.kind === "photos" || incoming.kind === "gallery") {
     analysis.value = incoming;
     photoIds.value = incoming.items?.map((item) => item.id) || [];
+    itemOptions.value = {};
+    for (const item of incoming.items || []) {
+      if (item.kind !== "video") continue;
+      const options = [...(item.choices || [])].sort(
+        (a, b) => (b.height || 0) - (a.height || 0),
+      );
+      const preferred =
+        options.find((c) => c.kind === "video" && c.has_audio) ||
+        options.find((c) => c.kind === "video") ||
+        options[0];
+      itemOptions.value[item.id] = {
+        choice_id: preferred?.id || "",
+        profile: "original",
+        bitrate: 192,
+      };
+    }
     choiceId.value = "";
     profile.value = "original";
     return;
@@ -128,6 +148,15 @@ function useAnalysis(task: Task) {
   choiceId.value = (ordered.find((c) => c.has_audio) || ordered[0])?.id || "";
   profile.value =
     analysis.value.platform === "TikTok" ? "compatible" : "original";
+}
+function itemChoice(item: PhotoItem) {
+  return item.choices?.find(
+    (c) => c.id === itemOptions.value[item.id]?.choice_id,
+  );
+}
+function updateItemChoice(item: PhotoItem) {
+  if (!itemChoice(item)?.has_audio)
+    itemOptions.value[item.id].profile = "original";
 }
 async function loadAsset(id: string) {
   asset.value = await api<Asset>("/assets/" + id);
@@ -201,6 +230,17 @@ async function download() {
       await post("/photo-downloads", {
         analysis_id: analysisId.value,
         item_ids: photoIds.value,
+      });
+    } else if (analysis.value?.kind === "gallery") {
+      await post("/post-downloads", {
+        analysis_id: analysisId.value,
+        selections: analysis.value.items
+          ?.filter((item) => photoIds.value.includes(item.id))
+          .map((item) =>
+            item.kind === "video"
+              ? { item_id: item.id, ...itemOptions.value[item.id] }
+              : { item_id: item.id },
+          ),
       });
     } else
       await post("/downloads", {
@@ -402,8 +442,8 @@ onUnmounted(() => {
         </form>
         <p class="help">
           <Icon name="clock" :size="14" />YouTube videos & Shorts, SoundCloud
-          tracks, TikTok videos or photo posts, and Instagram Reels or video
-          posts. One post at a time.
+          tracks, TikTok videos or photo posts, and Instagram Reels, photos or
+          carousels. One post at a time.
         </p>
         <div v-if="analyzingId" class="loading-box" role="status">
           <span class="spinner" />{{
@@ -449,14 +489,24 @@ onUnmounted(() => {
                 {{
                   analysis.kind === "photos"
                     ? `${analysis.item_count} photos`
-                    : duration(analysis.duration)
+                    : analysis.kind === "gallery"
+                      ? `${analysis.item_count} items`
+                      : duration(analysis.duration)
                 }}
               </p>
             </div>
           </div>
-          <template v-if="analysis.kind === 'photos'">
+          <template
+            v-if="analysis.kind === 'photos' || analysis.kind === 'gallery'"
+          >
             <div class="photo-heading">
-              <h3>Choose your photos</h3>
+              <h3>
+                {{
+                  analysis.kind === "gallery"
+                    ? "Choose your items"
+                    : "Choose your photos"
+                }}
+              </h3>
               <div class="photo-tools">
                 <button
                   class="text-button"
@@ -472,11 +522,14 @@ onUnmounted(() => {
               </div>
             </div>
             <p class="help">
-              Verified original images, with no re-encoding. Multiple selected
-              photos also include a ZIP.
+              {{
+                analysis.kind === "gallery"
+                  ? "Choose the items and video quality you want. Original photos keep their source bytes; multiple selected files also include a ZIP."
+                  : "Verified original images, with no re-encoding. Multiple selected photos also include a ZIP."
+              }}
             </p>
             <div class="photo-grid">
-              <label
+              <div
                 v-for="item in analysis.items"
                 :key="item.id"
                 :class="[
@@ -484,33 +537,97 @@ onUnmounted(() => {
                   { selected: photoIds.includes(item.id) },
                 ]"
               >
-                <input
-                  v-model="photoIds"
-                  type="checkbox"
-                  :value="item.id"
-                  :aria-label="`Select photo ${item.position}`"
-                />
-                <img
-                  :src="`/api/assets/${item.preview_asset_id}/preview`"
-                  :alt="`Photo ${item.position} preview`"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <span
-                  ><strong>Photo {{ item.position }}</strong
-                  ><br />{{ item.width }} × {{ item.height }} ·
-                  {{ item.format.toUpperCase() }}<br />{{
-                    bytes(item.size)
-                  }}</span
-                >
-              </label>
+                <label class="photo-selection">
+                  <input
+                    v-model="photoIds"
+                    type="checkbox"
+                    :value="item.id"
+                    :aria-label="`Select ${analysis.kind === 'gallery' ? 'item' : 'photo'} ${item.position}`"
+                  />
+                  <img
+                    v-if="item.preview_asset_id"
+                    :src="`/api/assets/${item.preview_asset_id}/preview`"
+                    :alt="`${item.kind === 'video' ? 'Video' : 'Photo'} ${item.position} preview`"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div v-else class="photo-placeholder">
+                    <Icon name="file" :size="32" />
+                  </div>
+                  <span
+                    ><strong
+                      >{{ item.kind === "video" ? "Video" : "Photo" }}
+                      {{ item.position }}</strong
+                    ><br />
+                    <template v-if="item.kind === 'video'">{{
+                      duration(item.duration)
+                    }}</template>
+                    <template v-else
+                      >{{ item.width }} × {{ item.height }} ·
+                      {{ item.format?.toUpperCase() }}<br />{{
+                        bytes(item.size ?? null)
+                      }}</template
+                    >
+                  </span>
+                </label>
+                <div v-if="item.kind === 'video'" class="item-controls">
+                  <label
+                    >Source format
+                    <select
+                      v-model="itemOptions[item.id].choice_id"
+                      :aria-label="`Source format for item ${item.position}`"
+                      @change="updateItemChoice(item)"
+                    >
+                      <option
+                        v-for="option in item.choices"
+                        :key="option.id"
+                        :value="option.id"
+                      >
+                        {{ choiceLabel(option) }}
+                      </option>
+                    </select>
+                  </label>
+                  <label
+                    >Output preset
+                    <select
+                      v-model="itemOptions[item.id].profile"
+                      :aria-label="`Output preset for item ${item.position}`"
+                    >
+                      <option value="original">
+                        Original · no re-encoding
+                      </option>
+                      <option
+                        value="mp3"
+                        :disabled="!itemChoice(item)?.has_audio"
+                      >
+                        Audio MP3 · re-encode
+                      </option>
+                    </select>
+                  </label>
+                  <label v-if="itemOptions[item.id].profile === 'mp3'"
+                    >MP3 bitrate
+                    <select
+                      v-model.number="itemOptions[item.id].bitrate"
+                      :aria-label="`MP3 bitrate for item ${item.position}`"
+                    >
+                      <option :value="128">128 kbps</option>
+                      <option :value="192">192 kbps</option>
+                      <option :value="320">320 kbps</option>
+                    </select>
+                  </label>
+                  <p class="help">
+                    {{ bytes(itemChoice(item)?.size ?? null) }}
+                  </p>
+                </div>
+              </div>
             </div>
             <button
               class="primary wide"
               :disabled="busy || !photoIds.length"
               @click="download"
             >
-              <Icon name="download" :size="18" />Add selected photos to queue
+              <Icon name="download" :size="18" />Add selected
+              {{ analysis.kind === "gallery" ? "items" : "photos" }} to queue
               ({{ photoIds.length }})
             </button>
           </template>
@@ -917,9 +1034,11 @@ onUnmounted(() => {
                     @click="inspectTask(task)"
                   >
                     {{
-                      task.result?.kind === "photos"
-                        ? "Choose photos"
-                        : "View formats"
+                      task.result?.kind === "gallery"
+                        ? "Choose items"
+                        : task.result?.kind === "photos"
+                          ? "Choose photos"
+                          : "View formats"
                     }}<Icon name="arrow" :size="14" /></button
                   ><template v-else-if="task.result?.files">
                     <a
@@ -971,26 +1090,46 @@ onUnmounted(() => {
                   class="photo-result"
                 >
                   <img
+                    v-if="item.preview_asset_id"
                     :src="`/api/assets/${item.preview_asset_id}/preview`"
-                    :alt="`Downloaded photo ${item.position}`"
+                    :alt="`Downloaded ${task.result.kind === 'gallery' ? 'item' : 'photo'} ${item.position}`"
                     loading="lazy"
                     decoding="async"
                   />
+                  <div v-else class="photo-placeholder">
+                    <Icon name="file" :size="32" />
+                  </div>
                   <figcaption>
-                    Photo {{ item.position }} · {{ item.width }} ×
-                    {{ item.height }}
+                    {{
+                      item.kind === "video"
+                        ? "Video"
+                        : item.kind === "audio"
+                          ? "Audio"
+                          : "Photo"
+                    }}
+                    {{ item.position }}
+                    <template v-if="item.width && item.height">
+                      · {{ item.width }} × {{ item.height }}</template
+                    >
+                    <template v-if="task.result.kind === 'gallery'">
+                      · {{ item.format?.toUpperCase() }}</template
+                    >
                   </figcaption>
                   <div class="photo-result-actions">
                     <a
                       class="secondary small"
                       :href="`/api/assets/${item.asset_id}/file`"
-                      >Download photo {{ item.position }}</a
+                      >Download
+                      {{ task.result.kind === "gallery" ? "item" : "photo" }}
+                      {{ item.position }}</a
                     ><button
                       class="secondary small"
                       :disabled="busy"
                       @click="convertPhoto(item.asset_id)"
                     >
-                      Convert photo {{ item.position }}
+                      Convert
+                      {{ task.result.kind === "gallery" ? "item" : "photo" }}
+                      {{ item.position }}
                     </button>
                   </div>
                 </figure>

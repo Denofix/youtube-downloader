@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-11-12T01:49:29.281177+00:00",
+  "source": "https://www.instagram.com/p/BqvsDleB3lV/",
+  "checks": [
+    {
+      "scenario": "photo analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "all local previews",
+      "state": "completed",
+      "count": 1
+    },
+    {
+      "scenario": "selected original photos",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "retained photo to PNG",
+      "state": "completed",
+      "error": null
+    }
+  ],
+  "canonical_source": "https://www.instagram.com/p/BqvsDleB3lV/",
+  "item_count": 1,
+  "analysis_timings": {
+    "total_seconds": 15.212,
+    "stages": {
+      "starting": 0.0,
+      "analyzing": 11.043,
+      "downloading": 4.17
+    }
+  },
+  "download_timings": {
+    "total_seconds": 0.082,
+    "stages": {
+      "starting": 0.0,
+      "preparing": 0.082
+    }
+  },
+  "files": [
+    {
+      "position": 1,
+      "format": "JPEG",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 383468,
+      "sha256": "4f4bf20b16c34fb168179529da63db450b15e89d7ee84ce098af3c5b5a277be0",
+      "http_status": 200
+    }
+  ],
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  }
+}

@@ -47,6 +47,43 @@ class PhotoDownloadRequest(ControlledRequest):
     )
 
 
+class PostSelection(ControlledRequest):
+    item_id: str = Field(pattern=r"^media_[1-9][0-9]?$")
+    choice_id: str | None = Field(default=None, pattern=r"^option_[0-9]{1,4}$")
+    profile: Literal["original", "compatible", "mp3"] = "original"
+    bitrate: Literal[128, 192, 320] = 192
+
+
+class PostDownloadRequest(ControlledRequest):
+    analysis_id: ID
+    selections: list[PostSelection] = Field(min_length=1, max_length=photos.MAX_ITEMS)
+
+
+def validate_download_profile(choice, profile, platform):
+    if platform == "TikTok":
+        if tiktok_watermarked(choice) or not choice["has_audio"]:
+            raise ServiceError(
+                "tiktok_source_unavailable",
+                "Analyze again to choose a source without a reported watermark and with clip audio.",
+            )
+        if profile == "original":
+            profile = "compatible"
+    if profile in {"mp3", "compatible"} and not choice["has_audio"]:
+        raise ServiceError("no_audio", "Choose a format with an audio stream.")
+    if profile == "compatible" and (
+        choice.get("kind") != "video" or not {"libx264", "aac"}.issubset(media.encoders())
+    ):
+        raise ServiceError(
+            "incompatible_conversion",
+            "Compatible MP4 delivery requires a video source and H.264/AAC encoders.",
+        )
+    if (profile in {"mp3", "compatible"} or choice["operation"] == "merge") and not shutil.which(
+        "ffmpeg"
+    ):
+        raise ServiceError("missing_ffmpeg", "FFmpeg is required. Check server diagnostics.")
+    return profile
+
+
 class Parameters(ControlledRequest):
     output: Literal[
         "mp4", "webm", "mkv", "mov", "mp3", "m4a", "wav", "flac", "ogg", "gif", "jpg", "png", "webp"
@@ -165,11 +202,11 @@ def create_app(config: Settings = settings):
                 },
                 {
                     "name": "TikTok",
-                    "status": "individual videos verified; photo posts and selected-photo ZIP delivery implemented",
+                    "status": "individual videos and photo posts verified by owner; selected files and ZIP available",
                 },
                 {
                     "name": "Instagram",
-                    "status": "individual Reels/video posts implemented; see live verification report; photos/carousels next",
+                    "status": "individual Reels/video posts verified by owner; photo/carousel selection and ZIP implemented; see verification reports",
                 },
                 {"name": "Pinterest", "status": "planned"},
             ],
@@ -223,28 +260,7 @@ def create_app(config: Settings = settings):
         choice = next((c for c in source["result"]["choices"] if c["id"] == body.choice_id), None)
         if choice is None:
             raise ServiceError("invalid_format", "This format does not belong to that analysis.")
-        profile = body.profile
-        if source["result"].get("platform") == "TikTok":
-            if tiktok_watermarked(choice) or not choice["has_audio"]:
-                raise ServiceError(
-                    "tiktok_source_unavailable",
-                    "Analyze again to choose a source without a reported watermark and with clip audio.",
-                )
-            if profile == "original":
-                profile = "compatible"
-        if profile in {"mp3", "compatible"} and not choice["has_audio"]:
-            raise ServiceError("no_audio", "Choose a format with an audio stream.")
-        if profile == "compatible" and (
-            choice.get("kind") != "video" or not {"libx264", "aac"}.issubset(media.encoders())
-        ):
-            raise ServiceError(
-                "incompatible_conversion",
-                "Compatible MP4 delivery requires a video source and H.264/AAC encoders.",
-            )
-        if (
-            profile in {"mp3", "compatible"} or choice["operation"] == "merge"
-        ) and not shutil.which("ffmpeg"):
-            raise ServiceError("missing_ffmpeg", "FFmpeg is required. Check server diagnostics.")
+        profile = validate_download_profile(choice, body.profile, source["result"].get("platform"))
         return public_task(
             store.create(
                 "download",
@@ -271,7 +287,10 @@ def create_app(config: Settings = settings):
             raise ServiceError(
                 "analysis_expired", "Analyze this photo post again before choosing items."
             )
-        if analysis.get("kind") != "photos" or analysis.get("platform") != "TikTok":
+        if analysis.get("kind") != "photos" or analysis.get("platform") not in {
+            "TikTok",
+            "Instagram",
+        }:
             raise ServiceError(
                 "invalid_selection", "Choose photos from a completed photo analysis."
             )
@@ -294,6 +313,63 @@ def create_app(config: Settings = settings):
                     "analysis": analysis,
                     "item_ids": [item["id"] for item in selected],
                     "asset_ids": [item["source_asset_id"] for item in selected],
+                },
+            )
+        )
+
+    @app.post("/api/post-downloads", status_code=202)
+    def post_download(body: PostDownloadRequest):
+        source = store.get(body.analysis_id)
+        analysis = source["result"]
+        if (
+            source["kind"] != "analyze"
+            or source["state"] != "completed"
+            or not analysis
+            or source["expires_at"] < time.time()
+        ):
+            raise ServiceError("analysis_expired", "Analyze this post again before choosing items.")
+        if analysis.get("kind") != "gallery" or analysis.get("platform") != "Instagram":
+            raise ServiceError(
+                "invalid_selection", "Choose items from a completed Instagram post analysis."
+            )
+        ids = [s.item_id for s in body.selections]
+        items = {i["id"]: i for i in analysis["items"]}
+        if len(set(ids)) != len(ids) or any(i not in items for i in ids):
+            raise ServiceError("invalid_selection", "Choose each item once from this analysis.")
+        inputs = []
+        for selection in body.selections:
+            item = items[selection.item_id]
+            if item["kind"] == "image":
+                if selection.choice_id is not None or selection.profile != "original":
+                    raise ServiceError(
+                        "invalid_selection", "Photos are delivered as original images."
+                    )
+                snapshot = item
+            else:
+                choice = next((c for c in item["choices"] if c["id"] == selection.choice_id), None)
+                if choice is None:
+                    raise ServiceError(
+                        "invalid_format", "Choose a format belonging to this video item."
+                    )
+                validate_download_profile(choice, selection.profile, "Instagram")
+                snapshot = item.get("poster")
+            if snapshot:
+                inputs.extend([snapshot["source_asset_id"], snapshot["preview_asset_id"]])
+        for asset_id in inputs:
+            try:
+                store.asset(asset_id)
+            except ServiceError:
+                raise ServiceError(
+                    "analysis_expired", "A retained post image expired. Analyze the post again."
+                ) from None
+        return public_task(
+            store.create(
+                "download",
+                analysis["title"],
+                {
+                    "analysis": analysis,
+                    "selections": [s.model_dump() for s in body.selections],
+                    "asset_ids": inputs,
                 },
             )
         )
