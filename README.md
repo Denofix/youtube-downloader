@@ -12,7 +12,14 @@ Pinterest [stage 5](docs/media-service/stage-5.md) adds individual image/GIF/vid
 
 ## Start
 
-Separate installation, configuration, update and usage guides (Russian): **[Windows / PowerShell](docs/users/windows.ru.md)** · **[Linux / Ubuntu / VMware](docs/users/linux.ru.md)**. They include Docker setup, language selection, first downloads/conversions, local ports and troubleshooting. The Linux guide also explains SSH access from another computer.
+Installation, configuration, usage and troubleshooting guides. Choose any installation folder; all project commands use the cloned repository directory.
+
+| System | English | Українська |
+| --- | --- | --- |
+| Windows / PowerShell | [User guide](docs/users/windows.en.md) | [Інструкція](docs/users/windows.uk.md) |
+| Linux / Ubuntu / VMware | [User guide](docs/users/linux.en.md) | [Інструкція](docs/users/linux.uk.md) |
+
+The Linux guides also cover SSH access from another computer.
 
 ```bash
 git clone --branch main https://github.com/Denofix/youtube-downloader.git download-convert
