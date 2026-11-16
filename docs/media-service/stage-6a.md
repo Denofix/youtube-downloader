@@ -45,6 +45,16 @@ video/audio trimming and image editing remain the next checkpoints, **6b/6c**.
 
 Update the feature branch, rebuild Docker, hard-refresh and test:
 
+```powershell
+git fetch origin
+git switch feat/converter-compatibility
+git pull --ff-only
+docker compose up -d --build --wait
+```
+
+Then open http://localhost:8080 and press Ctrl+F5. Linux users should prefix the
+Docker command with `sudo` when following the Ubuntu guide.
+
 1. A phone-rotated MOV -> MP4/GIF. The preview dimensions and output should be
    portrait, with no unwanted enlargement.
 2. A transparent PNG -> WebP and JPEG. WebP keeps alpha; JPEG uses white.
