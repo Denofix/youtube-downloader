@@ -91,6 +91,8 @@ export type Asset = {
     duration?: number;
     width?: number;
     height?: number;
+    display_width?: number;
+    display_height?: number;
     video_codec?: string;
     audio_codec?: string;
     transparent?: boolean;

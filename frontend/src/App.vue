@@ -194,7 +194,10 @@ function updateItemChoice(item: PhotoItem) {
 async function loadAsset(id: string) {
   asset.value = await api<Asset>("/assets/" + id);
   output.value = asset.value.operations[0]?.id || "";
-  gifDuration.value = Math.min(5, asset.value.metadata.duration || 5);
+  gifDuration.value = Math.max(
+    0.1,
+    Math.min(5, asset.value.metadata.duration || 5),
+  );
 }
 async function refresh() {
   if (polling) return;
@@ -969,7 +972,8 @@ onUnmounted(() => {
             <span>{{ bytes(asset.size) }}</span
             ><span>{{ mediaKind(asset.metadata.kind) }}</span
             ><span v-if="asset.metadata.width"
-              >{{ asset.metadata.width }} × {{ asset.metadata.height }}</span
+              >{{ asset.metadata.display_width || asset.metadata.width }} ×
+              {{ asset.metadata.display_height || asset.metadata.height }}</span
             ><span v-if="asset.metadata.duration">{{
               duration(asset.metadata.duration)
             }}</span

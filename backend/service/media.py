@@ -3,6 +3,7 @@ import re
 import shutil
 import subprocess
 import warnings
+from fractions import Fraction
 from functools import lru_cache
 from pathlib import Path
 
@@ -66,20 +67,38 @@ def probe(path: Path):
                     raise ServiceError(
                         "image_limit", "The image exceeds the 24 megapixel or 500 frame limit."
                     )
+                if frames > 1 and image.format != "GIF":
+                    raise ServiceError(
+                        "unsupported_animation", "Use an animated GIF or a video for animation."
+                    )
+                orientation = image.getexif().get(274, 1)
+                display_size = (
+                    (image.height, image.width) if orientation in {5, 6, 7, 8} else image.size
+                )
                 metadata = {
                     "kind": "animation" if frames > 1 else "image",
                     "format": image.format.lower(),
                     "width": image.width,
                     "height": image.height,
+                    "display_width": display_size[0],
+                    "display_height": display_size[1],
                     "frames": frames,
                     "has_audio": False,
                     "transparent": "A" in image.getbands() or "transparency" in image.info,
                 }
-                if frames == 1:
-                    image.verify()
+                duration_ms = 0
+                # Verify actual pixels, not just headers/checksums, before publishing an asset.
+                for frame in range(frames):
+                    image.seek(frame)
+                    image.load()
+                    duration_ms += image.info.get("duration", 0)
+                if frames > 1:
+                    metadata["duration"] = duration_ms / 1000 or None
                 return metadata
-    except (UnidentifiedImageError, OSError):
+    except UnidentifiedImageError:
         pass
+    except (OSError, SyntaxError, EOFError, ValueError):
+        raise ServiceError("invalid_image", "This image is incomplete or damaged.") from None
     except (Image.DecompressionBombError, Image.DecompressionBombWarning):
         raise ServiceError("image_limit", "This image exceeds the pixel limit.") from None
     data = json.loads(
@@ -114,12 +133,26 @@ def probe(path: Path):
     duration = float(data.get("format", {}).get("duration") or 0)
     if duration > 7200 or (video and video.get("width", 0) * video.get("height", 0) > 24_000_000):
         raise ServiceError("media_limit", "The file exceeds the two hour or 24 megapixel limit.")
+    rotation = 0
+    if video:
+        rotation = float(video.get("tags", {}).get("rotate") or 0)
+        for side_data in video.get("side_data_list", []):
+            if side_data.get("rotation") is not None:
+                rotation = float(side_data["rotation"])
+                break
+    rotated = abs(rotation) % 180 == 90
+    fps = video.get("avg_frame_rate", "0/1") if video else "0/1"
+    fps = float(Fraction(fps)) if fps not in {"0/0", "N/A"} else None
     return {
         "kind": "video" if video else "audio",
         "format": data.get("format", {}).get("format_name"),
         "duration": duration or None,
         "width": video.get("width") if video else None,
         "height": video.get("height") if video else None,
+        "display_width": video.get("height" if rotated else "width") if video else None,
+        "display_height": video.get("width" if rotated else "height") if video else None,
+        "rotation": rotation,
+        "fps": fps or None,
         "video_codec": video.get("codec_name") if video else None,
         "pixel_format": video.get("pix_fmt") if video else None,
         "video_profile": video.get("profile") if video else None,
@@ -191,6 +224,8 @@ def convert(source: Path, metadata, parameters, directory: Path):
                 image = background
             elif fmt == "webp":
                 image = image.convert("RGBA")
+            elif image.mode == "CMYK":
+                image = image.convert("RGB")
             image.save(target, format={"jpg": "JPEG", "png": "PNG", "webp": "WEBP"}[fmt])
     else:
         args = [
@@ -208,7 +243,10 @@ def convert(source: Path, metadata, parameters, directory: Path):
             str(source),
         ]
         if fmt == "gif":
-            width = min(parameters["width"], metadata.get("width") or parameters["width"])
+            width = min(
+                parameters["width"],
+                metadata.get("display_width") or metadata.get("width") or parameters["width"],
+            )
             graph = f"fps={parameters['fps']},scale={width}:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse"
             args += [
                 "-ss",
@@ -232,7 +270,7 @@ def convert(source: Path, metadata, parameters, directory: Path):
                 "-map",
                 "0:a:0?",
                 "-vf",
-                "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+                "pad=ceil(iw/2)*2:ceil(ih/2)*2",
                 "-pix_fmt",
                 "yuv420p",
                 *VIDEO[fmt][1],
