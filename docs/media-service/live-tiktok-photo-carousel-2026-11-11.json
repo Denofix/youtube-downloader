@@ -1,0 +1,78 @@
+{
+  "checked_at": "2026-11-11T19:59:03.531739+00:00",
+  "source": "https://www.tiktok.com/@hullcity/photo/7553302113757990166",
+  "checks": [
+    {
+      "scenario": "photo analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "all local previews",
+      "state": "completed",
+      "count": 2
+    },
+    {
+      "scenario": "selected original photos",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "ZIP preserves selected bytes and source order",
+      "state": "completed",
+      "bytes": 294990
+    },
+    {
+      "scenario": "retained photo to PNG",
+      "state": "completed",
+      "error": null
+    }
+  ],
+  "canonical_source": "https://www.tiktok.com/@hullcity/photo/7553302113757990166",
+  "item_count": 2,
+  "analysis_timings": {
+    "total_seconds": 26.235,
+    "stages": {
+      "starting": 0.0,
+      "analyzing": 14.011,
+      "downloading": 11.803,
+      "verifying": 0.421
+    }
+  },
+  "download_timings": {
+    "total_seconds": 0.366,
+    "stages": {
+      "starting": 0.0,
+      "preparing": 0.366
+    }
+  },
+  "files": [
+    {
+      "position": 1,
+      "format": "JPEG",
+      "width": 1290,
+      "height": 824,
+      "bytes": 87345,
+      "sha256": "1702d77a3912fd64908879de418d1ea999ff993a74b0e62421a4cf88a8cd7a6f",
+      "http_status": 200
+    },
+    {
+      "position": 2,
+      "format": "JPEG",
+      "width": 1440,
+      "height": 2470,
+      "bytes": 207275,
+      "sha256": "ce6fd21acc1bc70854b12ab790644bfac633e2cc598bf503ad9186156da4da52",
+      "http_status": 200
+    }
+  ],
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  }
+}

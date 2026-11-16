@@ -104,14 +104,9 @@ def validate_url(value: str) -> str:
                 raise ValueError
             if re.fullmatch(r"/t/[A-Za-z0-9_-]{1,128}/?", url.path):
                 return "https://www.tiktok.com" + url.path.rstrip("/") + "/"
-            match = re.fullmatch(r"/@([A-Za-z0-9_.]{1,64})/video/([0-9]{1,30})/?", url.path)
+            match = re.fullmatch(r"/@([A-Za-z0-9_.]{1,64})/(video|photo)/([0-9]{1,30})/?", url.path)
             if match:
-                return f"https://www.tiktok.com/@{match[1]}/video/{match[2]}"
-            if re.fullmatch(r"/@[^/]+/photo/[0-9]+/?", url.path):
-                raise ServiceError(
-                    "photo_planned",
-                    "TikTok photos and carousels are planned for the next stage. Use a video permalink.",
-                )
+                return f"https://www.tiktok.com/@{match[1]}/{match[2]}/{match[3]}"
             if url.path.rstrip("/").endswith("/live"):
                 raise ServiceError(
                     "live_unsupported",
@@ -433,6 +428,10 @@ def normalize(info: dict, url: str):
 
 def analyze(url, config):
     url = resolve_url(url)
+    if platform_for(url) == "TikTok" and "/photo/" in urlsplit(url).path:
+        from . import photos
+
+        return photos.analyze(url, config)
     try:
         with yt_dlp.YoutubeDL(options(config)) as ydl:
             return normalize(ydl.extract_info(url, download=False), url)

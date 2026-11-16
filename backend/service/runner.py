@@ -2,7 +2,7 @@ import resource
 import sys
 import time
 
-from . import media, sources
+from . import media, photos, sources
 from .errors import ServiceError
 from .store import Store
 
@@ -26,6 +26,12 @@ def execute(task, store):
         if task["kind"] == "analyze":
             report("analyzing")
             result = sources.analyze(payload["url"], config)
+            if result.get("kind") == "photos":
+                result = photos.prepare_analysis(result, store, task_id, directory, report)
+        elif task["kind"] == "download" and payload["analysis"].get("kind") == "photos":
+            result = photos.deliver(
+                payload["analysis"], payload["item_ids"], store, task_id, directory, report
+            )
         elif task["kind"] == "inspect":
             report("inspecting")
             asset = store.asset(payload["asset_id"], allow_expired=True)

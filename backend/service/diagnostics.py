@@ -45,6 +45,7 @@ def diagnose(url=None, config=settings):
                 "state": "completed",
                 "format_count": len(analysis["choices"]),
                 "kind": analysis["kind"],
+                "item_count": analysis.get("item_count"),
             }
         )
     except ServiceError as error:
