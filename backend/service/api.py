@@ -206,9 +206,12 @@ def create_app(config: Settings = settings):
                 },
                 {
                     "name": "Instagram",
-                    "status": "individual Reels/video posts verified by owner; photo/carousel selection and ZIP implemented; see verification reports",
+                    "status": "individual Reels/video posts, photos, photo-carousel subsets and retained video-to-MP3 verified by owner; see verification reports",
                 },
-                {"name": "Pinterest", "status": "planned"},
+                {
+                    "name": "Pinterest",
+                    "status": "individual image/GIF/video pins and pin.it links implemented; see verification reports",
+                },
             ],
             "presets": [
                 {
@@ -290,6 +293,7 @@ def create_app(config: Settings = settings):
         if analysis.get("kind") != "photos" or analysis.get("platform") not in {
             "TikTok",
             "Instagram",
+            "Pinterest",
         }:
             raise ServiceError(
                 "invalid_selection", "Choose photos from a completed photo analysis."

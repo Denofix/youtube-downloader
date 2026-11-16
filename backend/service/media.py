@@ -249,7 +249,7 @@ def verify_selected_source(path, choice, profile, directory, report):
     report("verifying")
     # Compatible delivery decodes while encoding and fully verifies the final MP4.
     metadata = probe(path) if profile == "compatible" else verify(path)
-    if choice["has_audio"] and not metadata["has_audio"]:
+    if choice["has_audio"] and not choice.get("audio_unknown") and not metadata["has_audio"]:
         raise ServiceError("invalid_result", "The result is missing its selected audio stream.")
     if profile != "mp3" and any(
         choice.get(dimension) and metadata.get(dimension) != choice[dimension]

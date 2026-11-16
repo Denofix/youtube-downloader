@@ -1,0 +1,325 @@
+{
+  "checked_at": "2026-11-12T14:35:16.902663+00:00",
+  "source": "https://www.pinterest.com/pin/664281013778109217/",
+  "quality_selection": "all",
+  "platform": "Pinterest",
+  "publication_type": "video",
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "completed",
+      "error": null,
+      "timings": {
+        "total_seconds": 12.293,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 12.293
+        }
+      }
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "V_HLSV4-501"
+      ],
+      "selected_height": 424,
+      "selected_width": 240,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 14.134,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 8.79,
+          "downloading": 4.552,
+          "preparing": 0.29,
+          "verifying": 0.502
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV4-501"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 57.736,
+        "width": 240,
+        "height": 424,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "Main",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 3236861
+    },
+    {
+      "scenario": "download mp3",
+      "state": "completed",
+      "source_format_ids": [
+        "V_HLSV4-501"
+      ],
+      "selected_height": 424,
+      "selected_width": 240,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 11.607,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 9.823,
+          "downloading": 1.038,
+          "preparing": 0.232,
+          "converting": 0.323,
+          "verifying": 0.19
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV4-501"
+      ],
+      "metadata": {
+        "kind": "audio",
+        "format": "mp3",
+        "duration": 57.70449,
+        "width": null,
+        "height": null,
+        "video_codec": null,
+        "pixel_format": null,
+        "video_profile": null,
+        "audio_codec": "mp3",
+        "audio_profile": null,
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 1385680
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "V_HLSV4-781"
+      ],
+      "selected_height": 640,
+      "selected_width": 360,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 13.021,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 9.874,
+          "downloading": 1.996,
+          "preparing": 0.352,
+          "verifying": 0.8
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV4-781"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 57.736,
+        "width": 360,
+        "height": 640,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "Main",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 5196023
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "V_HLSV4-1123"
+      ],
+      "selected_height": 852,
+      "selected_width": 480,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 17.961,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 11.354,
+          "downloading": 5.087,
+          "preparing": 0.354,
+          "verifying": 1.166
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV4-1123"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 57.736,
+        "width": 480,
+        "height": 852,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "Main",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 7580289
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "V_HLSV4-1613"
+      ],
+      "selected_height": 1136,
+      "selected_width": 640,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 23.698,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 12.228,
+          "downloading": 8.464,
+          "preparing": 0.488,
+          "verifying": 2.518
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV4-1613"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 57.736,
+        "width": 640,
+        "height": 1136,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "Main",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 11007881
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "V_HLSV4-2460"
+      ],
+      "selected_height": 1280,
+      "selected_width": 720,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": false,
+      "error": null,
+      "timings": {
+        "total_seconds": 16.486,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 11.243,
+          "downloading": 1.99,
+          "preparing": 0.486,
+          "verifying": 2.768
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_HLSV4-2460"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 57.736,
+        "width": 720,
+        "height": 1280,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 16918413
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "V_720P"
+      ],
+      "selected_height": 1920,
+      "selected_width": 1080,
+      "selected_kind": "video",
+      "selected_has_audio": true,
+      "selected_audio_unknown": true,
+      "error": null,
+      "timings": {
+        "total_seconds": 16.102,
+        "stages": {
+          "starting": 0.0,
+          "analyzing": 11.156,
+          "downloading": 0.631,
+          "preparing": 0.006,
+          "verifying": 4.309
+        }
+      },
+      "resolved_source_format_ids": [
+        "V_720P"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 57.7,
+        "width": 1080,
+        "height": 1920,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 18403864
+    }
+  ]
+}

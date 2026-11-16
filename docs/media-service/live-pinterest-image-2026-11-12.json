@@ -1,0 +1,65 @@
+{
+  "checked_at": "2026-11-12T14:31:15.192141+00:00",
+  "source": "https://www.pinterest.com/pin/858146903966145189/",
+  "checks": [
+    {
+      "scenario": "photo analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "all local previews",
+      "state": "completed",
+      "count": 1
+    },
+    {
+      "scenario": "selected original photos",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "retained photo to PNG",
+      "state": "completed",
+      "error": null
+    }
+  ],
+  "canonical_source": "https://www.pinterest.com/pin/858146903966145189/",
+  "item_count": 1,
+  "analysis_timings": {
+    "total_seconds": 10.858,
+    "stages": {
+      "starting": 0.0,
+      "analyzing": 5.781,
+      "downloading": 5.039,
+      "verifying": 0.037
+    }
+  },
+  "download_timings": {
+    "total_seconds": 0.021,
+    "stages": {
+      "starting": 0.0,
+      "preparing": 0.021
+    }
+  },
+  "files": [
+    {
+      "position": 1,
+      "format": "JPEG",
+      "width": 399,
+      "height": 600,
+      "bytes": 77302,
+      "sha256": "31e663885971178d2d777ecb92133c83944f815db2314ca81716706ec3d3042f",
+      "frames": 1,
+      "http_status": 200
+    }
+  ],
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  }
+}

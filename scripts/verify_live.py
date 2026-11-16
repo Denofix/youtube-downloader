@@ -14,7 +14,8 @@ from local_instance import running_instance
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "url", help="One public YouTube/TikTok/Instagram video or SoundCloud track permalink"
+        "url",
+        help="One public YouTube/TikTok/Instagram/Pinterest video or SoundCloud track permalink",
     )
     parser.add_argument("--base", default="http://127.0.0.1:8080")
     parser.add_argument(
@@ -112,6 +113,7 @@ def main():
                         "selected_width": choice["width"],
                         "selected_kind": choice["kind"],
                         "selected_has_audio": choice["has_audio"],
+                        "selected_audio_unknown": bool(choice.get("audio_unknown")),
                         "error": result["error"],
                     }
                     if result["state"] == "completed":

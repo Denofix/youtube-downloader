@@ -80,7 +80,13 @@ function choiceLabel(c: Choice) {
     c.fps ? c.fps + " fps" : null,
     c.container.toUpperCase(),
     c.kind === "audio" && c.audio_bitrate ? c.audio_bitrate + " kbps" : null,
-    c.kind === "video" ? (c.has_audio ? "with audio" : "no audio") : null,
+    c.kind === "video"
+      ? c.audio_unknown
+        ? "audio unknown"
+        : c.has_audio
+          ? "with audio"
+          : "no audio"
+      : null,
     c.video_codec || c.audio_codec,
     c.format_note,
     c.source_format_ids.join(" + "),
@@ -426,7 +432,7 @@ onUnmounted(() => {
               id="source-url"
               v-model="url"
               type="url"
-              placeholder="Paste a YouTube, SoundCloud, TikTok or Instagram link"
+              placeholder="Paste a YouTube, SoundCloud, TikTok, Instagram or Pinterest link"
               autocomplete="url"
               required
               :disabled="!!analyzingId"
@@ -442,8 +448,8 @@ onUnmounted(() => {
         </form>
         <p class="help">
           <Icon name="clock" :size="14" />YouTube videos & Shorts, SoundCloud
-          tracks, TikTok videos or photo posts, and Instagram Reels, photos or
-          carousels. One post at a time.
+          tracks, TikTok videos or photo posts, Instagram Reels, photos or
+          carousels, and Pinterest image, GIF or video pins. One post at a time.
         </p>
         <div v-if="analyzingId" class="loading-box" role="status">
           <span class="spinner" />{{
@@ -556,7 +562,13 @@ onUnmounted(() => {
                   </div>
                   <span
                     ><strong
-                      >{{ item.kind === "video" ? "Video" : "Photo" }}
+                      >{{
+                        item.kind === "video"
+                          ? "Video"
+                          : item.kind === "animation"
+                            ? "Animation"
+                            : "Photo"
+                      }}
                       {{ item.position }}</strong
                     ><br />
                     <template v-if="item.kind === 'video'">{{
@@ -567,6 +579,9 @@ onUnmounted(() => {
                       {{ item.format?.toUpperCase() }}<br />{{
                         bytes(item.size ?? null)
                       }}</template
+                    >
+                    <template v-if="item.kind === 'animation'">
+                      · {{ item.frames }} frames</template
                     >
                   </span>
                 </label>
@@ -679,6 +694,11 @@ onUnmounted(() => {
               Sources with a reported watermark are excluded. Video delivery
               keeps the selected resolution; HEVC is re-encoded for compatible
               playback. Output size may change.
+            </p>
+            <p v-if="choice?.audio_unknown" class="help">
+              This source does not report audio presence. Original keeps the
+              available streams; MP3 requires an audio stream in the actual
+              file.
             </p>
             <details class="advanced">
               <summary>Advanced · source details & encoding</summary>
@@ -1105,13 +1125,20 @@ onUnmounted(() => {
                         ? "Video"
                         : item.kind === "audio"
                           ? "Audio"
-                          : "Photo"
+                          : item.kind === "animation"
+                            ? "Animation"
+                            : "Photo"
                     }}
                     {{ item.position }}
                     <template v-if="item.width && item.height">
                       · {{ item.width }} × {{ item.height }}</template
                     >
-                    <template v-if="task.result.kind === 'gallery'">
+                    <template
+                      v-if="
+                        task.result.kind === 'gallery' ||
+                        item.kind === 'animation'
+                      "
+                    >
                       · {{ item.format?.toUpperCase() }}</template
                     >
                   </figcaption>

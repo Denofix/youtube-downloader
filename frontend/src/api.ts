@@ -11,6 +11,7 @@ export type Choice = {
   video_codec: string | null;
   audio_codec: string | null;
   has_audio: boolean;
+  audio_unknown?: boolean;
   operation: string;
   size: number | null;
   size_kind: string;
@@ -19,7 +20,8 @@ export type Choice = {
 export type PhotoItem = {
   id: string;
   position: number;
-  kind?: "image" | "video";
+  kind?: "image" | "video" | "animation";
+  frames?: number;
   width?: number | null;
   height?: number | null;
   format?: string;
