@@ -13,7 +13,7 @@ Pinterest [stage 5](docs/media-service/stage-5.md) adds individual image/GIF/vid
 ## Start
 
 ```bash
-git clone --branch feat/pinterest https://github.com/Denofix/youtube-downloader.git download-convert
+git clone --branch main https://github.com/Denofix/youtube-downloader.git download-convert
 cd download-convert
 cp .env.example .env
 docker compose up --build -d --wait
