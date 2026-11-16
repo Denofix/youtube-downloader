@@ -1,3 +1,13 @@
+import { locale, t } from "./i18n";
+
+export class ApiError extends Error {
+  code: string;
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+  }
+}
+
 export type Choice = {
   id: string;
   kind: string;
@@ -103,10 +113,28 @@ export type ServerSettings = {
   presets: { name: string; description: string }[];
 };
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch("/api" + path, init);
-  const body = await response.json();
+  let response: Response;
+  try {
+    response = await fetch("/api" + path, init);
+  } catch {
+    throw new ApiError(
+      "network_error",
+      "Cannot connect to the server. Check the connection and try again.",
+    );
+  }
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    throw new ApiError(
+      "server_error",
+      "The server could not complete this request.",
+    );
+  }
   if (!response.ok)
-    throw new Error(
+    throw new ApiError(
+      body.detail?.code ||
+        (Array.isArray(body.detail) ? "invalid_parameters" : "server_error"),
       body.detail?.message ||
         (Array.isArray(body.detail)
           ? "Check the selected parameters."
@@ -123,24 +151,33 @@ export function post<T>(path: string, body?: unknown) {
 }
 export const bytes = (value: number | null) =>
   value === null
-    ? "Size unknown"
+    ? t("Size unknown")
     : value < 1024 ** 2
-      ? (value / 1024).toFixed(0) + " KB"
+      ? number(value / 1024, 0) + " " + t("KB")
       : value < 1024 ** 3
-        ? (value / 1024 ** 2).toFixed(1) + " MB"
-        : (value / 1024 ** 3).toFixed(1) + " GB";
+        ? number(value / 1024 ** 2, 1) + " " + t("MB")
+        : number(value / 1024 ** 3, 1) + " " + t("GB");
+const number = (value: number, digits: number) =>
+  value.toLocaleString(locale.value === "uk" ? "uk-UA" : "en-GB", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+    useGrouping: false,
+  });
 export const duration = (seconds: number | null | undefined) =>
   seconds == null
-    ? "Duration unknown"
+    ? t("Duration unknown")
     : `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60)
         .toString()
         .padStart(2, "0")}`;
 export const active = (task: Task) =>
   task.state === "queued" || task.state === "running";
 export const date = (timestamp: number) =>
-  new Date(timestamp * 1000).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  new Date(timestamp * 1000).toLocaleString(
+    locale.value === "uk" ? "uk-UA" : "en-GB",
+    {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  );

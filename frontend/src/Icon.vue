@@ -5,6 +5,8 @@ const paths: Record<string, string> = {
   convert: "M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4",
   tasks: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
   settings: "M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6M9 15v6",
+  language:
+    "M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M2 12h20M12 2c-5 5-5 15 0 20 5-5 5-15 0-20",
   link: "m9 15 6-6M8 17l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2-1 1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0",
   arrow: "M5 12h14m-5-5 5 5-5 5",
   upload: "M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5",
