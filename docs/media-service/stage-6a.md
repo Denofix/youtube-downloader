@@ -36,9 +36,10 @@ video/audio trimming and image editing remain the next checkpoints, **6b/6c**.
   text and clickable links checked. Clean Docker installation on a new Windows
   or Ubuntu host was not repeated here; that remains a stage-7 acceptance gate.
 - Local browser execution is blocked by this environment's Chromium Unix-socket
-  permission restriction. The added seventh browser suite and production
-  Docker startup are delegated to the repository's CI; record the observed run
-  below once it finishes.
+  permission restriction. [PR #9](https://github.com/Denofix/youtube-downloader/pull/9)
+  links the current CI results for all seven browser suites and the production
+  Docker startup. CI also runs the 428 backend and 7 localization cases against
+  the bookworm environment; its current checks are the integration gate.
 
 ## Owner acceptance
 

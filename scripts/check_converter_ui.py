@@ -30,14 +30,16 @@ def main():
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(base + "/#convert", wait_until="networkidle")
         page.get_by_label("Choose media file", exact=True).set_input_files(fixtures / "rotated.mov")
-        choice = page.get_by_label("What would you like to do?", exact=True)
+        choice = page.get_by_role("combobox", name="What would you like to do?", exact=True)
         expect(choice).to_be_visible(timeout=20000)
         expect(page.locator(".source-facts")).to_contain_text("90 × 160")
         choice.select_option("gif")
         page.get_by_label("Duration (seconds)", exact=True).fill("0.3")
         # Changing the language retains this file/operation and the selected clip duration.
         page.get_by_label("Language", exact=True).select_option("uk")
-        expect(page.get_by_label("Що ви хочете зробити?", exact=True)).to_have_value("gif")
+        expect(
+            page.get_by_role("combobox", name="Що ви хочете зробити?", exact=True)
+        ).to_have_value("gif")
         expect(page.get_by_label("Тривалість (секунди)", exact=True)).to_have_value("0.3")
         for width in (320, 390, 768, 1440):
             page.set_viewport_size({"width": width, "height": 1050})
@@ -61,8 +63,9 @@ def main():
                 image.load()
         page.reload(wait_until="networkidle")
         expect(result).to_be_visible()
-        nav = page.get_by_role("navigation", name="Main navigation")
-        nav.get_by_role("button", name="convert", exact=True).click()
+        # After reload, recover the retained asset through history rather than
+        # assuming that the unsaved upload form still exists in browser memory.
+        page.get_by_role("button", name="Choose conversion", exact=True).click()
         page.get_by_role("button", name="Change file", exact=True).click()
         page.get_by_label("Choose media file", exact=True).set_input_files(fixtures / "silent.mp4")
         expect(choice).to_be_visible(timeout=20000)
