@@ -1,0 +1,15 @@
+.git
+.venv
+data
+frontend/node_modules
+frontend/dist
+__pycache__
+.pytest_cache
+.ruff_cache
+.ui-artifacts
+.env
+cookies*.txt
+*.cookies.txt
+main.py
+icon.*
+screenshot_*.png

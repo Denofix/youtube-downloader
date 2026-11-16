@@ -1,0 +1,45 @@
+{
+  "checked_at": "2026-11-11T06:36:08.748484+00:00",
+  "source": "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "download original",
+      "state": "failed",
+      "source_format_ids": [
+        "160",
+        "140"
+      ],
+      "selected_height": 144,
+      "error": {
+        "code": "invalid_source_media",
+        "message": "The source returned invalid media data. Check source access and connectivity, then analyze again."
+      }
+    },
+    {
+      "scenario": "download mp3",
+      "state": "failed",
+      "source_format_ids": [
+        "160",
+        "140"
+      ],
+      "selected_height": 144,
+      "error": {
+        "code": "invalid_source_media",
+        "message": "The source returned invalid media data. Check source access and connectivity, then analyze again."
+      }
+    }
+  ]
+}

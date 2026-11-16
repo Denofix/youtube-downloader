@@ -24,3 +24,17 @@ desktop.ini
 
 # Ffmpeg
 ffmpeg.exe
+
+# Service state, tools and owner secrets
+data/
+node_modules/
+.env
+.env.*
+!.env.example
+compose.override.yaml
+cookies*.txt
+*.cookies.txt
+.pytest_cache/
+.ruff_cache/
+.ui-artifacts/
+.playwright/

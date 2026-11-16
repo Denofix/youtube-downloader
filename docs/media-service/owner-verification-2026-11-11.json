@@ -1,0 +1,42 @@
+{
+  "verified_on": "2026-11-11",
+  "verification_type": "owner confirmation and supplied screenshots",
+  "scope": "One tested YouTube source and the first download/conversion workflow; not a blanket guarantee for all links or target platforms.",
+  "environment": {
+    "host_ui": "Windows browser at http://localhost:8080",
+    "deployment": "Project Compose services; worker reported online",
+    "versions": {
+      "yt-dlp": "2026.10.26",
+      "yt-dlp-ejs": "0.8.0",
+      "Pillow": "13.0.0",
+      "ffmpeg": "5.1.9-0+deb12u1",
+      "ffprobe": "5.1.9-0+deb12u1",
+      "Node": "v24.22.2"
+    }
+  },
+  "cases": [
+    {
+      "scenario": "YouTube metadata and actual format selection",
+      "result": "passed",
+      "evidence": "Owner screenshots show source metadata and 1080p, 25 FPS, MP4 with audio selected."
+    },
+    {
+      "scenario": "Real video download and result delivery",
+      "result": "passed",
+      "evidence": "Completed download tasks, MP4 save dialog and playback in the owner's native player."
+    },
+    {
+      "scenario": "Direct MP3 download preset",
+      "result": "passed_owner_report",
+      "evidence": "Owner confirms the workflow works; the supplied download-folder view includes the MP3 192kbps result."
+    },
+    {
+      "scenario": "Uploaded/downloaded MP4 to MP3 conversion",
+      "result": "passed_owner_report",
+      "evidence": "Detected input metadata, Extract audio to MP3 with 192 kbps selected, completed conversion and converted.mp3 save dialog."
+    }
+  ],
+  "acceptance_gate": "First real link-to-file and conversion scenario accepted for the owner's tested setup.",
+  "development_environment": "The earlier invalid_source_media results remain documented separately and are not overwritten.",
+  "evidence_privacy": "Raw desktop screenshots and personal file-dialog contents are not published with this report."
+}
