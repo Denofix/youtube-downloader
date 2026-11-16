@@ -1,5 +1,7 @@
 # Stage 4a — individual Instagram Reels and video posts
 
+Follow-up: the owner confirmed Reel download/playback. [Stage 4b](stage-4b.md) adds photo/carousel selection and a pinned metadata adapter; this report describes the earlier video-only revision.
+
 Branch: `feat/instagram-video`, stacked on `feat/tiktok-photos` / PR #4 at `8e81b6a7`. The parent photo feature remains available and its owner-instance acceptance is separate. This first Instagram slice implements individual videos; Instagram photo/carousel selection is the next slice. No database migration or runtime dependency change is required.
 
 ## Behavior
@@ -16,7 +18,7 @@ The source may require owner-configured cookies or impose an anonymous-access li
 
 ## Extractor decision
 
-Reviewed the [pinned upstream Instagram extractor](https://github.com/yt-dlp/yt-dlp/blob/2026.10.26/yt_dlp/extractor/instagram.py) and its individual Reel/video test URLs. The normal public yt-dlp `extract_info(..., process=False)` / `process_ie_result(...)` flow permits checking a single result before download. No private extractor override, dependency update or copied upstream implementation is introduced in production. Test workers override upstream extraction only to serve clearly labelled owned local fixtures, and remain excluded from the production image.
+Reviewed the [pinned upstream Instagram extractor](https://github.com/yt-dlp/yt-dlp/blob/2026.10.26/yt_dlp/extractor/instagram.py) and its individual Reel/video test URLs. The normal public yt-dlp `extract_info(..., process=False)` / `process_ie_result(...)` flow permits checking a single result before download. At the stage-4a revision, no private extractor override, dependency update or copied upstream implementation was introduced in production; the later stage-4b adapter is documented separately. Test workers override upstream extraction only to serve clearly labelled owned local fixtures, and remain excluded from the production image.
 
 ## Verification
 

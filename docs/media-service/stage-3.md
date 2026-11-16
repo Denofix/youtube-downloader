@@ -33,7 +33,7 @@ Two public TikTok cases passed through the normal API and production worker:
 | [Single photo](live-tiktok-photo-single-2026-11-11.json) | 1080 × 1920 JPEG, 189,999 bytes; local preview, exact original retrieval and PNG conversion passed |
 | [Two-photo carousel](live-tiktok-photo-carousel-2026-11-11.json) | JPEGs 1290 × 824 and 1440 × 2470; 87,345 and 207,275 bytes; original retrieval, a 294,990-byte ZIP with identical contents/order and PNG conversion passed |
 
-The two-item live carousel selects both items; partial selection from a larger post is covered by the three-item controlled API/browser fixture. These cases establish those publications, not universal TikTok access. Source media and screenshots from public posts are not republished. Actual CI evidence is recorded in the stage PR. Owner-instance photo testing is the remaining acceptance step.
+The two-item live carousel selects both items; partial selection from a larger post is covered by the three-item controlled API/browser fixture. These cases establish those publications, not universal TikTok access. Source media and screenshots from public posts are not republished. Actual CI evidence is recorded in the stage PR. The owner subsequently confirmed TikTok photo downloads, opening the ZIP and viewing an original JPEG; see [owner acceptance](owner-acceptance-2026-11-12.json). Extended keyboard/long-title browser checks remain a separate CI gate.
 
 ## Update the existing Windows checkout
 
@@ -55,4 +55,4 @@ YTDLP_USE_SYSTEM_CA=1 PYTHONPATH=backend uv run --no-sync python scripts/verify_
 
 ## Following stage
 
-After the owner photo check, extend individual publication support to Instagram video/photo/carousel and then Pinterest image/video pins, with their own source/access verification. Batch uploads, profile/channel scanning, subscriptions and public multi-user hosting remain later stages.
+The owner photo check is confirmed. Instagram individual video/photo/carousel support is now implemented in stages 4a/4b; Pinterest image/video pins are next, with their own source/access verification. Batch uploads, profile/channel scanning, subscriptions and public multi-user hosting remain later stages.

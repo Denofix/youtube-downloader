@@ -216,6 +216,21 @@ def main():
         page.keyboard.press("Tab")
         expect(page.get_by_role("link", name="Skip to content")).to_be_focused()
         heading.click()
+        field = page.get_by_label("Media URL")
+        field.focus()
+        page.keyboard.press("Tab")
+        page.keyboard.press("Shift+Tab")
+        expect(field).to_be_focused()
+        assert field.evaluate("el => getComputedStyle(el).outlineStyle") == "none"
+        assert (
+            field.evaluate("el => getComputedStyle(el.closest('.url-field')).boxShadow") != "none"
+        )
+        page.screenshot(path=str(args.screenshots / "url-focus-desktop.png"), full_page=True)
+        page.set_viewport_size({"width": 390, "height": 844})
+        page.screenshot(path=str(args.screenshots / "url-focus-mobile.png"), full_page=True)
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+        page.set_viewport_size({"width": 1440, "height": 1050})
+        heading.click()
         page.screenshot(path=str(args.screenshots / "download-desktop.png"), full_page=True)
         navigation.get_by_role("button", name="tasks", exact=True).click()
         expect(page.get_by_text("A clear queue. A fresh start.")).to_be_visible()

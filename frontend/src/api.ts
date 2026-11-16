@@ -19,19 +19,23 @@ export type Choice = {
 export type PhotoItem = {
   id: string;
   position: number;
-  width: number;
-  height: number;
-  format: string;
-  size: number;
-  preview_asset_id: string;
+  kind?: "image" | "video";
+  width?: number | null;
+  height?: number | null;
+  format?: string;
+  size?: number | null;
+  preview_asset_id?: string | null;
+  duration?: number | null;
+  choices?: Choice[];
 };
-export type PhotoFile = Omit<PhotoItem, "id"> & {
+export type PhotoFile = Omit<PhotoItem, "id" | "kind"> & {
+  kind?: string;
   item_id: string;
   asset_id: string;
   name: string;
 };
 export type Analysis = {
-  kind: "video" | "audio" | "photos";
+  kind: "video" | "audio" | "photos" | "gallery";
   title: string;
   platform: string;
   author: string | null;

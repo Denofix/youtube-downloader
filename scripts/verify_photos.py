@@ -1,4 +1,4 @@
-"""Opt-in real TikTok photo analysis, selected originals, ZIP and image conversion."""
+"""Opt-in TikTok/Instagram photo analysis, selected originals, ZIP and conversion."""
 
 import argparse
 import hashlib
@@ -17,7 +17,7 @@ from PIL import Image
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("url", help="One public TikTok photo-post permalink")
+    parser.add_argument("url", help="One public TikTok or Instagram photo-post permalink")
     parser.add_argument("--base", default="http://localhost:8080")
     parser.add_argument("--ephemeral", action="store_true")
     parser.add_argument("--output", type=Path, required=True)

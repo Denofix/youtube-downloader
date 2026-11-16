@@ -1,0 +1,56 @@
+{
+  "recorded_on": "2026-11-12",
+  "repository": "Denofix/youtube-downloader",
+  "branch": "feat/instagram-gallery",
+  "implementation_commit": "5018dad37c814eedae39350e7aa0f6223c69a95e",
+  "pull_request": "https://github.com/Denofix/youtube-downloader/pull/6",
+  "workflow_runs": [
+    {
+      "id": 43139081555,
+      "event": "push",
+      "conclusion": "success",
+      "url": "https://github.com/Denofix/youtube-downloader/actions/runs/43139081555"
+    },
+    {
+      "id": 43139162110,
+      "event": "pull_request",
+      "conclusion": "success",
+      "url": "https://github.com/Denofix/youtube-downloader/actions/runs/43139162110"
+    }
+  ],
+  "checks": {
+    "backend_tests_passed": 256,
+    "backend_format_and_lint": "passed",
+    "frontend_format_types_and_build": "passed",
+    "production_docker_compose_build_and_start": "passed",
+    "browser_suites": [
+      "general media conversion, HEVC-to-H264 visible-pixel playback and persisted history",
+      "TikTok photos, exact subset/ZIP bytes, keyboard selection, reverse tab order, visible focus and long titles",
+      "Instagram video, real MP4/MP3 delivery, visible-pixel playback and access error",
+      "Instagram single photo and mixed carousel, selection/quality, ZIP and individual files, retained conversion, video MP3 at 128 kbps and history"
+    ],
+    "browser_source": "owned local media and explicitly identified metadata fixtures; public-source reports are separate",
+    "url_focus_assertions": "nested input outline is none; whole field has a continuous focus indicator",
+    "desktop_and_mobile_overflow": "passed"
+  },
+  "screenshot_review": {
+    "artifact_id": 13909057051,
+    "artifact_name": "ui-screenshots",
+    "archive_sha256": "ad955bbb667a1e9e1317fd34e40f35f2255e95c8c3dcac140ec3c09286d5e2cb",
+    "archive_checksum_verified": true,
+    "reviewed": [
+      "url-focus-desktop.png",
+      "url-focus-mobile.png",
+      "instagram-gallery-desktop.png",
+      "instagram-gallery-mobile.png",
+      "instagram-gallery-results-mobile.png"
+    ],
+    "result": "one outline includes the URL field icon; gallery controls/results fit desktop and mobile widths",
+    "contains_public_source_media_or_owner_screenshots": false
+  },
+  "owner_acceptance": {
+    "new_url_focus_and_instagram_gallery": "pending",
+    "instagram_mp3": "pending separate owner check",
+    "existing_reel_and_tiktok_photos": "recorded separately in owner-acceptance-2026-11-12.json"
+  }
+}

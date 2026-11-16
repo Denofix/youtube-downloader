@@ -9,8 +9,8 @@ def extractor_error(error: Exception) -> ServiceError:
     text = str(error).lower()
     if "there is no video in this post" in text:
         return ServiceError(
-            "instagram_photo_planned",
-            "This Instagram post contains photos. Photo and carousel selection is the next Instagram stage. Use one Reel or video post for now.",
+            "instagram_post_unreadable",
+            "Instagram did not return usable photo data. Analyze again after checking source access and extractor diagnostics.",
         )
     if "drm protected" in text or "drm-protected" in text:
         return ServiceError(

@@ -1,0 +1,18 @@
+{
+  "recorded_on": "2026-11-12",
+  "evidence": "Owner message and screenshots in this conversation; source screenshots and media are not copied into the repository.",
+  "owner_confirmed": {
+    "instagram_reel_download_and_playback": true,
+    "tiktok_photo_selection_and_download": true,
+    "tiktok_multi_photo_zip_opened": true,
+    "downloaded_tiktok_photo_opened": true
+  },
+  "not_explicitly_owner_confirmed": [
+    "Instagram MP3",
+    "Instagram photo/carousel stage 4b",
+    "keyboard focus and long-title browser assertions"
+  ],
+  "follow_up": {
+    "url_field_double_focus_border": "Fixed in stage 4b; retain one visible indicator around the icon and complete field."
+  }
+}

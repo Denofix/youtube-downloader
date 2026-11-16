@@ -72,7 +72,7 @@ def validate_url(value: str) -> str:
                 return f"https://www.instagram.com/{route}/{match[2]}/"
             raise ServiceError(
                 "instagram_permalink_required",
-                "Use the full link to one Instagram Reel or video post. Open share links in your browser first. Profiles, Stories and live streams are not supported in this stage.",
+                "Use the full link to one Instagram Reel or post. Open share links in your browser first. Profiles, Stories and live streams are not supported in this stage.",
             )
         if host in SOUNDCLOUD_HOSTS:
             if host == "on.soundcloud.com" and re.fullmatch(r"/[A-Za-z0-9_-]{1,128}/?", url.path):
@@ -150,7 +150,7 @@ def validate_url(value: str) -> str:
     except (ValueError, TypeError):
         raise ServiceError(
             "invalid_url",
-            "Enter a YouTube video, public SoundCloud track, TikTok post or Instagram video URL.",
+            "Enter a YouTube video, public SoundCloud track, TikTok post or Instagram post URL.",
         ) from None
 
 
@@ -448,8 +448,8 @@ def require_single_instagram_video(info, source_id=None):
         raise ServiceError("source_unavailable", "Instagram did not return this video.")
     if info.get("_type") in {"playlist", "multi_video"} or info.get("entries") is not None:
         raise ServiceError(
-            "instagram_carousel_planned",
-            "This Instagram post is a carousel. Photo and carousel selection is the next Instagram stage. Use one Reel or video post for now.",
+            "source_changed",
+            "This selection expected one video but the source returned a collection. Analyze the post again to choose its items.",
         )
     if info.get("_type") not in {None, "video"}:
         raise ServiceError("source_unavailable", "Instagram did not return one direct video.")
@@ -463,14 +463,13 @@ def analyze(url, config):
         from . import photos
 
         return photos.analyze(url, config)
+    if platform_for(url) == "Instagram":
+        from . import instagram
+
+        return instagram.analyze(url, config)
     try:
         with yt_dlp.YoutubeDL(options(config)) as ydl:
-            if platform_for(url) == "Instagram":
-                info = ydl.extract_info(url, download=False, process=False)
-                require_single_instagram_video(info)
-                info = ydl.process_ie_result(info, download=False)
-            else:
-                info = ydl.extract_info(url, download=False)
+            info = ydl.extract_info(url, download=False)
             return normalize(info, url)
     except yt_dlp.utils.DownloadError as error:
         raise extractor_error(error) from None
@@ -543,7 +542,9 @@ def download(analysis, choice, profile, bitrate, directory: Path, config, report
     return _download_one(analysis, choice, profile, bitrate, directory, config, report)
 
 
-def _download_one(analysis, choice, profile, bitrate, directory: Path, config, report):
+def _download_one(
+    analysis, choice, profile, bitrate, directory: Path, config, report, raw_info=None
+):
     def progress(data):
         total = data.get("total_bytes") or data.get("total_bytes_estimate")
         value = min(100, 100 * data.get("downloaded_bytes", 0) / total) if total else None
@@ -665,7 +666,18 @@ def _download_one(analysis, choice, profile, bitrate, directory: Path, config, r
         with yt_dlp.YoutubeDL(opts) as ydl:
             url = validate_url(analysis["url"])
             if analysis.get("platform") == "Instagram":
-                raw = ydl.extract_info(url, download=False, process=False)
+                if raw_info is None:
+                    from . import instagram
+
+                    root, entries = instagram.read_publication(url, config, ydl)
+                    require_single_instagram_video(root)
+                    if len(entries) != 1 or entries[0]["kind"] != "video":
+                        raise ServiceError(
+                            "source_changed", "This video post changed. Analyze the post again."
+                        )
+                    raw = entries[0]["raw"]
+                else:
+                    raw = raw_info
                 require_single_instagram_video(raw, analysis["source_id"])
                 info = ydl.process_ie_result(raw, download=True)
             else:
