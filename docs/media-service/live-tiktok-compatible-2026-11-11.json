@@ -1,0 +1,300 @@
+{
+  "checked_at": "2026-11-11T14:31:35.556591+00:00",
+  "source": "https://www.tiktok.com/@jua209njo656/video/7705216175302659350",
+  "quality_selection": "all",
+  "platform": "TikTok",
+  "publication_type": "video",
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "download compatible",
+      "state": "completed",
+      "source_format_ids": [
+        "bytevc1_540p_423072-0",
+        "h264_540p_985579-0"
+      ],
+      "selected_height": 1024,
+      "selected_width": 576,
+      "selected_kind": "video",
+      "error": null,
+      "resolved_source_format_ids": [
+        "bytevc1_540p_423072-0",
+        "h264_540p_985579-0"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 73.746009,
+        "width": 576,
+        "height": 1024,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 21284333
+    },
+    {
+      "scenario": "download mp3",
+      "state": "completed",
+      "source_format_ids": [
+        "bytevc1_540p_423072-0",
+        "h264_540p_985579-0"
+      ],
+      "selected_height": 1024,
+      "selected_width": 576,
+      "selected_kind": "video",
+      "error": null,
+      "resolved_source_format_ids": [
+        "h264_540p_985579-0"
+      ],
+      "metadata": {
+        "kind": "audio",
+        "format": "mp3",
+        "duration": 73.613061,
+        "width": null,
+        "height": null,
+        "video_codec": null,
+        "pixel_format": null,
+        "video_profile": null,
+        "audio_codec": "mp3",
+        "audio_profile": null,
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 1767594
+    },
+    {
+      "scenario": "download compatible",
+      "state": "completed",
+      "source_format_ids": [
+        "h264_540p_985579-0"
+      ],
+      "selected_height": 1024,
+      "selected_width": 576,
+      "selected_kind": "video",
+      "error": null,
+      "resolved_source_format_ids": [
+        "h264_540p_985579-0"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 73.585011,
+        "width": 576,
+        "height": 1024,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 18422346
+    },
+    {
+      "scenario": "download compatible",
+      "state": "completed",
+      "source_format_ids": [
+        "bytevc1_720p_532237-0",
+        "h264_540p_985579-0"
+      ],
+      "selected_height": 1280,
+      "selected_width": 720,
+      "selected_kind": "video",
+      "error": null,
+      "resolved_source_format_ids": [
+        "bytevc1_720p_644859-0",
+        "h264_540p_985579-0"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 73.746009,
+        "width": 720,
+        "height": 1280,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 30362416
+    },
+    {
+      "scenario": "download compatible",
+      "state": "completed",
+      "source_format_ids": [
+        "bytevc1_1080p_1100555-0",
+        "h264_540p_985579-0"
+      ],
+      "selected_height": 1920,
+      "selected_width": 1080,
+      "selected_kind": "video",
+      "error": null,
+      "resolved_source_format_ids": [
+        "bytevc1_1080p_1231538-0",
+        "h264_540p_985579-0"
+      ],
+      "metadata": {
+        "kind": "video",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 73.746009,
+        "width": 1080,
+        "height": 1920,
+        "video_codec": "h264",
+        "pixel_format": "yuv420p",
+        "video_profile": "High",
+        "audio_codec": "aac",
+        "audio_profile": "LC",
+        "audio_channels": 2,
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 61747167
+    }
+  ],
+  "environment": "development environment; updated Windows Media Player playback still needs owner confirmation",
+  "visual_review": {
+    "checked_times_seconds": [
+      30,
+      72
+    ],
+    "visible_picture": true,
+    "tiktok_watermark_seen_in_checked_frames": false,
+    "scope": "Representative frames from the 1080x1920 H.264 result; this is not an exhaustive watermark detector."
+  },
+  "local_playback_probe": [
+    {
+      "result_file_index": "1",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "codec_tag_string": "avc1",
+          "profile": "High",
+          "pix_fmt": "yuv420p",
+          "width": 576,
+          "height": 1024,
+          "avg_frame_rate": "30/1",
+          "channels": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "codec_tag_string": "mp4a",
+          "profile": "LC",
+          "pix_fmt": null,
+          "width": null,
+          "height": null,
+          "avg_frame_rate": "0/0",
+          "channels": 2
+        }
+      ]
+    },
+    {
+      "result_file_index": "3",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "codec_tag_string": "avc1",
+          "profile": "High",
+          "pix_fmt": "yuv420p",
+          "width": 576,
+          "height": 1024,
+          "avg_frame_rate": "30/1",
+          "channels": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "codec_tag_string": "mp4a",
+          "profile": "LC",
+          "pix_fmt": null,
+          "width": null,
+          "height": null,
+          "avg_frame_rate": "0/0",
+          "channels": 2
+        }
+      ]
+    },
+    {
+      "result_file_index": "4",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "codec_tag_string": "avc1",
+          "profile": "High",
+          "pix_fmt": "yuv420p",
+          "width": 720,
+          "height": 1280,
+          "avg_frame_rate": "30/1",
+          "channels": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "codec_tag_string": "mp4a",
+          "profile": "LC",
+          "pix_fmt": null,
+          "width": null,
+          "height": null,
+          "avg_frame_rate": "0/0",
+          "channels": 2
+        }
+      ]
+    },
+    {
+      "result_file_index": "5",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "codec_tag_string": "avc1",
+          "profile": "High",
+          "pix_fmt": "yuv420p",
+          "width": 1080,
+          "height": 1920,
+          "avg_frame_rate": "30/1",
+          "channels": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "codec_tag_string": "mp4a",
+          "profile": "LC",
+          "pix_fmt": null,
+          "width": null,
+          "height": null,
+          "avg_frame_rate": "0/0",
+          "channels": 2
+        }
+      ]
+    }
+  ]
+}

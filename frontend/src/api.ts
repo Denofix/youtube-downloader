@@ -3,7 +3,11 @@ export type Choice = {
   kind: string;
   container: string;
   height: number | null;
+  width: number | null;
+  quality_height?: number | null;
   fps: number | null;
+  audio_bitrate: number | null;
+  format_note: string | null;
   video_codec: string | null;
   audio_codec: string | null;
   has_audio: boolean;
@@ -13,6 +17,7 @@ export type Choice = {
   source_format_ids: string[];
 };
 export type Analysis = {
+  kind: "video" | "audio";
   title: string;
   platform: string;
   author: string | null;
@@ -32,7 +37,13 @@ export type Task = {
   created_at: number;
   expires_at: number | null;
   expired: boolean;
-  result: (Partial<Analysis> & { asset_id?: string; preview?: boolean }) | null;
+  result:
+    | (Partial<Analysis> & {
+        asset_id?: string;
+        preview?: boolean;
+        timings?: { total_seconds: number; stages: Record<string, number> };
+      })
+    | null;
   error: { code: string; message: string } | null;
 };
 export type Asset = {
@@ -55,6 +66,7 @@ export type Asset = {
 };
 export type ServerSettings = {
   versions: Record<string, string>;
+  source_transport: { browser_impersonation: boolean };
   worker_online: boolean;
   ttl_seconds: number;
   job_timeout_seconds: number;

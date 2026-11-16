@@ -1,0 +1,67 @@
+{
+  "checked_at": "2026-11-11T11:02:39.683099+00:00",
+  "source": "https://soundcloud.com/ethmusic/lostin-powers-she-so-heavy",
+  "platform": "SoundCloud",
+  "publication_type": "audio",
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "completed",
+      "error": null
+    },
+    {
+      "scenario": "download original",
+      "state": "completed",
+      "source_format_ids": [
+        "hls_aac_96k"
+      ],
+      "selected_height": null,
+      "selected_width": null,
+      "selected_kind": "audio",
+      "error": null,
+      "metadata": {
+        "kind": "audio",
+        "format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration": 143.22068,
+        "width": null,
+        "height": null,
+        "video_codec": null,
+        "audio_codec": "aac",
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 1744152
+    },
+    {
+      "scenario": "download mp3",
+      "state": "completed",
+      "source_format_ids": [
+        "hls_aac_96k"
+      ],
+      "selected_height": null,
+      "selected_width": null,
+      "selected_kind": "audio",
+      "error": null,
+      "metadata": {
+        "kind": "audio",
+        "format": "mp3",
+        "duration": 143.25551,
+        "width": null,
+        "height": null,
+        "video_codec": null,
+        "audio_codec": "mp3",
+        "has_audio": true
+      },
+      "download_http_status": 200,
+      "download_bytes": 3438901
+    }
+  ]
+}

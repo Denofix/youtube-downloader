@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-11-11T11:28:07.980872+00:00",
+  "source": "https://soundcloud.com/jeembo-music/fallen-baldscum-remix",
+  "platform": null,
+  "publication_type": null,
+  "versions": {
+    "yt-dlp": "2026.10.26",
+    "yt-dlp-ejs": "0.8.0",
+    "curl-cffi": "0.17.0",
+    "pillow": "13.0.0",
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+    "node": "v24.22.1"
+  },
+  "checks": [
+    {
+      "scenario": "metadata analysis",
+      "state": "failed",
+      "error": {
+        "code": "drm_protected",
+        "message": "The source offers this item only in DRM-protected formats. Choose a track or video with an available unprotected download, or use the creator's official download."
+      }
+    }
+  ],
+  "environment": "development environment; owner Windows Compose recheck remains pending"
+}

@@ -1,0 +1,207 @@
+{
+  "checked_at": "2026-11-11T19:19:46.327594+00:00",
+  "source": "https://www.tiktok.com/@jua209njo656/video/7705216175302659350",
+  "baseline_commit": "c96ac6ead3118743ceac9fa19a6deff0bdbd9eca",
+  "conditions": {
+    "encoder_threads": 2,
+    "decoder_threads": 2,
+    "video_crf": 18,
+    "environment": "shared Linux development host; wall times vary with host load and upstream response",
+    "scope": "One complete owner-supplied 1080x1920, approximately 73.7-second post; not a universal speed claim"
+  },
+  "baseline_live": {
+    "scenario": "baseline live highest TikTok",
+    "state": "completed",
+    "error": null,
+    "analysis_seconds": 14.035,
+    "task_seconds": 248.526,
+    "stages_seconds": {
+      "starting": 0.0,
+      "analyzing": 33.323,
+      "downloading": 2.379,
+      "preparing": 0.076,
+      "merging": 0.357,
+      "verifying": 14.838,
+      "converting": 197.552
+    },
+    "total_seconds": 262.57,
+    "metadata": {
+      "kind": "video",
+      "format": "mov,mp4,m4a,3gp,3g2,mj2",
+      "duration": 73.746009,
+      "width": 1080,
+      "height": 1920,
+      "video_codec": "h264",
+      "pixel_format": "yuv420p",
+      "video_profile": "High",
+      "audio_codec": "aac",
+      "audio_profile": "LC",
+      "audio_channels": 2,
+      "has_audio": true
+    },
+    "bytes": 61720267,
+    "source_format_ids": [
+      "bytevc1_1080p_1231538-0",
+      "h264_540p_985579-0"
+    ]
+  },
+  "optimized_same_input_conversion": {
+    "scenario": "veryfast compatible encoding, same complete local source",
+    "total_seconds": 84.659,
+    "stages": [
+      {
+        "stage": "probe",
+        "seconds": 0.116
+      },
+      {
+        "stage": "encode",
+        "seconds": 72.234
+      },
+      {
+        "stage": "probe",
+        "seconds": 0.145
+      },
+      {
+        "stage": "verify",
+        "seconds": 12.161
+      }
+    ],
+    "metadata": {
+      "kind": "video",
+      "format": "mov,mp4,m4a,3gp,3g2,mj2",
+      "duration": 73.746009,
+      "width": 1080,
+      "height": 1920,
+      "video_codec": "h264",
+      "pixel_format": "yuv420p",
+      "video_profile": "High",
+      "audio_codec": "aac",
+      "audio_profile": "LC",
+      "audio_channels": 2,
+      "has_audio": true
+    },
+    "bytes": 54307202
+  },
+  "optimized_live": {
+    "checked_at": "2026-11-11T19:19:46.327594+00:00",
+    "source": "https://www.tiktok.com/@jua209njo656/video/7705216175302659350",
+    "quality_selection": "highest",
+    "platform": "TikTok",
+    "publication_type": "video",
+    "versions": {
+      "yt-dlp": "2026.10.26",
+      "yt-dlp-ejs": "0.8.0",
+      "curl-cffi": "0.17.0",
+      "pillow": "13.0.0",
+      "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "ffprobe": "ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers",
+      "node": "v24.22.1"
+    },
+    "checks": [
+      {
+        "scenario": "metadata analysis",
+        "state": "completed",
+        "error": null,
+        "timings": {
+          "total_seconds": 20.159,
+          "stages": {
+            "starting": 0.0,
+            "analyzing": 20.159
+          }
+        }
+      },
+      {
+        "scenario": "download compatible",
+        "state": "completed",
+        "source_format_ids": [
+          "bytevc1_1080p_1100555-0",
+          "h264_540p_985579-0"
+        ],
+        "selected_height": 1920,
+        "selected_width": 1080,
+        "selected_kind": "video",
+        "error": null,
+        "timings": {
+          "total_seconds": 119.022,
+          "stages": {
+            "starting": 0.0,
+            "analyzing": 32.181,
+            "downloading": 2.164,
+            "preparing": 0.198,
+            "merging": 0.253,
+            "verifying": 0.19,
+            "converting": 84.035
+          }
+        },
+        "resolved_source_format_ids": [
+          "bytevc1_1080p_1100555-0",
+          "h264_540p_985579-0"
+        ],
+        "metadata": {
+          "kind": "video",
+          "format": "mov,mp4,m4a,3gp,3g2,mj2",
+          "duration": 73.746009,
+          "width": 1080,
+          "height": 1920,
+          "video_codec": "h264",
+          "pixel_format": "yuv420p",
+          "video_profile": "High",
+          "audio_codec": "aac",
+          "audio_profile": "LC",
+          "audio_channels": 2,
+          "has_audio": true
+        },
+        "download_http_status": 200,
+        "download_bytes": 54307202
+      },
+      {
+        "scenario": "download mp3",
+        "state": "completed",
+        "source_format_ids": [
+          "bytevc1_1080p_1100555-0",
+          "h264_540p_985579-0"
+        ],
+        "selected_height": 1920,
+        "selected_width": 1080,
+        "selected_kind": "video",
+        "error": null,
+        "timings": {
+          "total_seconds": 19.825,
+          "stages": {
+            "starting": 0.0,
+            "analyzing": 16.142,
+            "downloading": 1.375,
+            "preparing": 0.012,
+            "converting": 1.862,
+            "verifying": 0.434
+          }
+        },
+        "resolved_source_format_ids": [
+          "h264_540p_985579-0"
+        ],
+        "metadata": {
+          "kind": "audio",
+          "format": "mp3",
+          "duration": 73.613061,
+          "width": null,
+          "height": null,
+          "video_codec": null,
+          "pixel_format": null,
+          "video_profile": null,
+          "audio_codec": "mp3",
+          "audio_profile": null,
+          "audio_channels": 2,
+          "has_audio": true
+        },
+        "download_http_status": 200,
+        "download_bytes": 1767594
+      }
+    ]
+  },
+  "owner_confirmation": {
+    "date": "2026-11-11",
+    "tiktok": "Owner confirmed compatible MP4 downloaded and played in Windows Media Player",
+    "soundcloud": "Owner confirmed another public SoundCloud track downloaded and played as M4A",
+    "protected_remix": "Earlier DRM-only remix remains a separate unavailable source"
+  }
+}

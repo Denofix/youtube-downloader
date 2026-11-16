@@ -49,4 +49,4 @@ Owner runtime versions visible in the screenshots: yt-dlp 2026.10.26, yt-dlp-ejs
 
 ## Remaining scope
 
-TikTok, SoundCloud, Instagram, Pinterest, photo/carousel selection, ZIP results, batch upload UI, light theme and subscription/library/public-hosting features remain in the staged specification. They are not falsely advertised as working in the current interface.
+The next source stage is recorded separately in [stage-2.md](stage-2.md): SoundCloud passed a real original/MP3 download, while TikTok's adapter has controlled verification and an explicit live network block. Instagram, Pinterest, photo/carousel selection, ZIP results, batch upload UI, light theme and subscription/library/public-hosting features remain later stages.

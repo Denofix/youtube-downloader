@@ -15,12 +15,13 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
+    container: python:3.12-bookworm
+    defaults:
+      run:
+        shell: bash
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-python@v7.1.0
-        with:
-          python-version: "3.12"
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: "24"
@@ -31,9 +32,10 @@ jobs:
           version: "0.13.6"
           enable-cache: true
       - name: Install locked dependencies and media tools
+        timeout-minutes: 5
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          apt-get -o Acquire::Retries=2 update --error-on=any
+          apt-get -o Acquire::Retries=2 install -y --no-install-recommends ffmpeg chromium
           uv sync --frozen --all-groups
       - name: Backend checks
         run: |
@@ -50,8 +52,7 @@ jobs:
           npm run build
       - name: Real browser integration and screenshots
         run: |
-          uv run --no-sync playwright install --with-deps chromium
-          uv run --no-sync python scripts/check_ui.py
+          uv run --no-sync python scripts/check_ui.py --chromium /usr/bin/chromium
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
@@ -72,6 +73,7 @@ jobs:
           curl --fail http://127.0.0.1:8080/api/health
           curl --fail http://127.0.0.1:8080/
           docker compose exec -T worker node --version
+          docker compose exec -T worker python -m service.diagnostics --runtime-only
       - name: Container logs
         if: failure()
         run: docker compose logs --tail=100

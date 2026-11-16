@@ -1,0 +1,45 @@
+# TikTok playback and source delivery — 11 November 2026
+
+The owner successfully downloaded TikTok media, but a highest-resolution H.265 result played with black video and audible sound. Windows Media Player explicitly requested an HEVC codec extension. The watermarked H.264 source played, showing that the download was decodable but the original codec was unsuitable for that player. The fix changes delivery rather than asking the owner to install a codec.
+
+## Delivery policy
+
+- TikTok video results use **Compatible MP4 — H.264 + AAC**, with 8-bit `yuv420p` video and faststart. Already compatible H.264/AAC-LC stereo streams are remuxed without re-encoding. HEVC/10-bit/incompatible video is encoded with libx264, `veryfast` preset, CRF 18; audio is AAC-LC stereo. Encoding can take longer and change the output size. It does not improve the source or promise a lossless re-encode.
+- Selected width and height are checked before and after processing. Portrait 1080 × 1920 is labelled **1080p**, with exact dimensions shown separately. There is no lower-resolution or different-source-video-codec fallback.
+- Sources explicitly marked watermarked, including the web `download` rendition, are excluded. The worker checks the selected source again before publication. If no usable source without a reported watermark is available, the task fails instead of returning the marked variant. This selects available source media; it does not crop, blur or reconstruct a watermark.
+- High-resolution HEVC renditions can alternate between muxed video/audio and video-only endpoints. When the actual selected file already contains audio, that audio is used without a second request. Otherwise audio is explicitly taken from an unmarked video rendition of the **same post**; the standalone music URL is never substituted. Only the selected high-resolution video stream and that clip audio are muxed into the final result.
+- Duplicate CDN IDs are one quality option. TikTok can change mirror suffixes and the ID's total-bitrate number when removing muxed audio. Refreshing the URL is constrained to the same rendition family, dimensions, FPS and source video codec. The actual resolved IDs are recorded in the task result; a different resolution/codec fails with `format_unavailable`.
+- Existing API requests using `original` for TikTok are handled as compatible video delivery. Cached watermarked choices are rejected, and the UI hides them. Fresh analysis after updating is required to see the current source choices. Other platforms retain their original-download behavior.
+
+## Verification
+
+The expanded local backend suite has **131 passing tests**, including real generated portrait HEVC/10-bit video with no audio, same-clip audio muxing, H.264 output with nonblack decoded pixels, audible PCM samples, MP3 extraction, watermark changes/rejection, CDN-ID changes, muxed-audio ID changes and rejection of changed geometry. Existing YouTube, SoundCloud, conversion, queue and process checks remain included.
+
+The browser suite now generates HEVC/10-bit input, converts it to MP4, actually plays the H.264 result in a browser and reads visible pixels from a frame. It also checks the compatible default, hiding cached watermarked options, highest-source selection, mobile overflow and existing MP3/GIF/image/history flows. Actual CI results are recorded in PR #3; the workflow file alone is not evidence of a pass.
+
+The live verification script supports `--quality lowest|highest|all` and optional `--save-results` for local playback inspection. The [release live report](live-tiktok-compatible-2026-11-11.json) passed all four offered source renditions plus MP3 for the owner-supplied post, not only the smallest video:
+
+| Source rendition | Delivered result | Bytes |
+| --- | --- | ---: |
+| H.265, 576 × 1024 | H.264/AAC MP4, 576 × 1024 | 21,284,333 |
+| H.264, 576 × 1024 | H.264/AAC MP4, 576 × 1024 | 18,422,346 |
+| H.265, 720 × 1280 | H.264/AAC MP4, 720 × 1280 | 30,362,416 |
+| H.265, 1080 × 1920 | H.264/AAC MP4, 1080 × 1920 | 61,747,167 |
+| Clip audio | MP3, approximately 73.6 seconds | 1,767,594 |
+
+All results were fully decoded and retrieved with HTTP 200. The video probes confirm AVC/H.264, 8-bit yuv420p, 30 FPS, AAC-LC and two audio channels. Representative frames at 30 and 72 seconds from the highest-resolution result show visible video and no TikTok watermark; this is a sample review, not an exhaustive logo detector. No source video or frames are republished. The owner subsequently confirmed successful compatible TikTok playback in Windows Media Player on 11 November 2026. The [speed follow-up](tiktok-speed.md) records the subsequent processing optimization.
+
+## SoundCloud scope
+
+The newly supplied `mC39...` share link resolves to the same `jeembo-music/fallen-baldscum-remix` track, ID 2398469850. It still returns `drm_protected`; changing URL form does not produce an unprotected format. yt-dlp documents this SoundCloud encrypted-format limitation in [issue #17335](https://github.com/yt-dlp/yt-dlp/issues/17335). A creator-provided official download or a different available unprotected track is required.
+
+The unprotected control track is [ethmusic/lostin-powers-she-so-heavy](https://soundcloud.com/ethmusic/lostin-powers-she-so-heavy). Its original M4A and MP3 results both passed again; see the [separate live report](live-soundcloud-playback-followup-2026-11-11.json). The owner also confirmed downloading and playing a different public SoundCloud track as M4A. This establishes support for available sources, not universal SoundCloud downloading.
+
+## Update the existing instance
+
+```powershell
+git pull --ff-only origin feat/soundcloud-tiktok
+docker compose up -d --build
+```
+
+Refresh with Ctrl+F5 and analyze the TikTok link again. Choose the desired resolution and **Compatible MP4**; do not reuse the previously downloaded HEVC file. Download and play the new result. MP3 remains available as a separate output.
