@@ -43,7 +43,7 @@ def main():
         base = "http://127.0.0.1:" + str(server.server_port)
         post = {
             "id": "7100000000000000001",
-            "desc": "Owned carousel (local fixture)",
+            "desc": "Owned carousel (local fixture) — " + "LongPhotoTitle" * 25,
             "author": {"uniqueId": "ui.fixture"},
             "imagePost": {
                 "images": [

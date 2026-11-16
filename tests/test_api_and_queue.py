@@ -108,9 +108,9 @@ def test_limits_and_validation(client, config):
         )
     assert client.post("/api/analyze", json={"url": "http://127.0.0.1"}).status_code == 400
     assert (
-        client.post("/api/analyze", json={"url": "https://instagram.com/p/example"}).json()[
-            "detail"
-        ]["code"]
+        client.post("/api/analyze", json={"url": "https://pinterest.com/pin/123"}).json()["detail"][
+            "code"
+        ]
         == "platform_planned"
     )
     assert (

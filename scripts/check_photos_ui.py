@@ -38,6 +38,33 @@ def main():
         expect(page.get_by_role("checkbox")).to_have_count(3)
         for position in (1, 2, 3):
             expect(page.get_by_label(f"Select photo {position}", exact=True)).to_be_checked()
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+        clear = page.get_by_role("button", name="Clear selection", exact=True)
+        clear.focus()
+        page.keyboard.press("Enter")
+        page.keyboard.press("Tab")
+        first = page.get_by_label("Select photo 1", exact=True)
+        expect(first).to_be_focused()
+        assert first.evaluate("el => el.matches(':focus-visible')")
+        assert first.evaluate("el => getComputedStyle(el).outlineStyle") != "none"
+        page.keyboard.press("Space")
+        expect(first).to_be_checked()
+        page.keyboard.press("Tab")
+        second = page.get_by_label("Select photo 2", exact=True)
+        expect(second).to_be_focused()
+        page.keyboard.press("Space")
+        expect(second).to_be_checked()
+        page.keyboard.press("Shift+Tab")
+        expect(first).to_be_focused()
+        page.keyboard.press("Space")
+        expect(first).not_to_be_checked()
+        page.keyboard.press("Shift+Tab")
+        expect(clear).to_be_focused()
+        page.keyboard.press("Shift+Tab")
+        expect(page.get_by_role("button", name="Select all", exact=True)).to_be_focused()
+        page.keyboard.press("Enter")
+        for position in (1, 2, 3):
+            expect(page.get_by_label(f"Select photo {position}", exact=True)).to_be_checked()
         page.screenshot(path=str(args.screenshots / "photos-select-desktop.png"), full_page=True)
         page.get_by_role("button", name="Clear selection", exact=True).click()
         expect(
@@ -110,6 +137,8 @@ def main():
                     "checks": [
                         "real original images and local previews",
                         "clear/select subset",
+                        "keyboard selection, reverse tab order and visible focus",
+                        "long unbroken publication title",
                         "ZIP and individual downloads with identical bytes",
                         "source order",
                         "reload persistence",

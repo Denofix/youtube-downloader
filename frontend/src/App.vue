@@ -386,7 +386,7 @@ onUnmounted(() => {
               id="source-url"
               v-model="url"
               type="url"
-              placeholder="Paste a YouTube, SoundCloud or TikTok link"
+              placeholder="Paste a YouTube, SoundCloud, TikTok or Instagram link"
               autocomplete="url"
               required
               :disabled="!!analyzingId"
@@ -402,7 +402,8 @@ onUnmounted(() => {
         </form>
         <p class="help">
           <Icon name="clock" :size="14" />YouTube videos & Shorts, SoundCloud
-          tracks and TikTok videos or photo posts. One post at a time.
+          tracks, TikTok videos or photo posts, and Instagram Reels or video
+          posts. One post at a time.
         </p>
         <div v-if="analyzingId" class="loading-box" role="status">
           <span class="spinner" />{{

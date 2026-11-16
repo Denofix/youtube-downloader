@@ -7,6 +7,11 @@ class ServiceError(Exception):
 def extractor_error(error: Exception) -> ServiceError:
     # Classify privately: never publish stderr, cookie paths or signed media URLs.
     text = str(error).lower()
+    if "there is no video in this post" in text:
+        return ServiceError(
+            "instagram_photo_planned",
+            "This Instagram post contains photos. Photo and carousel selection is the next Instagram stage. Use one Reel or video post for now.",
+        )
     if "drm protected" in text or "drm-protected" in text:
         return ServiceError(
             "drm_protected",
@@ -32,7 +37,9 @@ def extractor_error(error: Exception) -> ServiceError:
             "soundcloud_client_id",
             "SoundCloud's public API credentials could not be retrieved. Retry after checking the server's SoundCloud access and runtime versions.",
         )
-    if any(word in text for word in ("http error 429", "too many requests", "rate limit")):
+    if any(
+        word in text for word in ("http error 429", "too many requests", "rate limit", "rate-limit")
+    ):
         return ServiceError(
             "source_rate_limited",
             "The source is limiting requests. Wait before trying this item again.",
