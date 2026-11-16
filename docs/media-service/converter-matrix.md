@@ -92,4 +92,4 @@ two-hour media duration, 24-megapixel images and 500 animation frames still appl
 Video formats do not retain image transparency. Larger bitrate or re-encoding
 does not improve source detail or guarantee a smaller file.
 
-Setup and usage: [Windows](../users/windows.ru.md) · [Linux](../users/linux.ru.md).
+Setup and usage: Windows ([English](../users/windows.en.md) / [Українська](../users/windows.uk.md)); Linux ([English](../users/linux.en.md) / [Українська](../users/linux.uk.md)).

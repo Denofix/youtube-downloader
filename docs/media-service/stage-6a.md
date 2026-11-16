@@ -18,12 +18,12 @@ video/audio trimming and image editing remain the next checkpoints, **6b/6c**.
   Truncated JPEGs and unsupported non-GIF animations fail with specific,
   Ukrainian-translated errors. Animated GIF duration is exposed; the form keeps
   its duration inside the existing minimum bound.
-- Added separate [Windows](../users/windows.ru.md) and
-  [Linux/Ubuntu](../users/linux.ru.md) installation, configuration and usage
-  instructions, linked from README. They include main updates, Docker pause,
-  quoted paths, health, language selection, troubleshooting and VM/SSH access.
-  Matching three-page PDFs are delivered separately; the Markdown guides are
-  the repository's editable source.
+- Separate installation, configuration and usage guides are available for
+  Windows ([English](../users/windows.en.md) / [Українська](../users/windows.uk.md))
+  and Linux/Ubuntu ([English](../users/linux.en.md) / [Українська](../users/linux.uk.md)),
+  linked from README. They cover user-selected install folders, main updates,
+  Docker pause, health, languages, troubleshooting and VM/SSH access.
+  Matching PDFs are delivered separately; Markdown is the editable source.
 
 ## Observed verification - 16 November 2026
 
@@ -32,7 +32,7 @@ video/audio trimming and image editing remain the next checkpoints, **6b/6c**.
   production build passed.
 - Standalone matrix runner: **104 passed**, with actual file hashes and versions
   recorded in the JSON report.
-- Each PDF contains three pages; all pages were rendered and visually reviewed,
+- The original PDFs contained three pages; all pages were rendered and visually reviewed,
   text and clickable links checked. Clean Docker installation on a new Windows
   or Ubuntu host was not repeated here; that remains a stage-7 acceptance gate.
 - Local browser execution is blocked by this environment's Chromium Unix-socket
