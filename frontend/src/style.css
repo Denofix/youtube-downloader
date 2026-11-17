@@ -1230,3 +1230,33 @@ footer a:hover {
     height: 150px;
   }
 }
+
+.demo-banner {
+  margin: 0 0 32px;
+  padding: 20px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.demo-banner strong {
+  color: var(--accent);
+  font-size: 16px;
+}
+.demo-banner p,
+.demo-samples p {
+  color: var(--muted);
+  margin: 8px 0 16px;
+}
+.demo-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.demo-actions a {
+  color: var(--muted);
+  font-size: 13px;
+}
+.demo-samples {
+  padding: 28px;
+}

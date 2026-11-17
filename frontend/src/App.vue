@@ -12,6 +12,8 @@ import {
 } from "./i18n";
 import {
   ApiError,
+  demoMode,
+  assetUrl,
   api,
   post,
   bytes,
@@ -25,6 +27,7 @@ import {
   type ServerSettings,
   type Task,
 } from "./api";
+import { sampleAssets } from "./demo-assets";
 type Tab = "download" | "convert" | "tasks" | "settings";
 const tabs: Tab[] = ["download", "convert", "tasks", "settings"];
 const tab = ref<Tab>(
@@ -297,6 +300,7 @@ async function convertPhoto(id: string) {
   });
 }
 async function upload(files: FileList | File[] | null) {
+  if (demoMode) return;
   const file = files?.[0];
   if (!file) return;
   if (files!.length > 1) {
@@ -371,6 +375,27 @@ async function inspectTask(task: Task) {
       navigate("convert");
     });
 }
+async function tryDemo(kind: "video" | "photos") {
+  navigate("download");
+  url.value = "https://demo.invalid/" + kind;
+  await analyze();
+}
+async function demoSample(key: string) {
+  await action(async () => {
+    await loadAsset(sampleAssets[key].id);
+  });
+}
+async function resetDemo() {
+  await post("/demo/reset", {});
+  analysis.value = null;
+  asset.value = null;
+  analyzingId.value = "";
+  inspectingId.value = "";
+  analysisId.value = "";
+  url.value = "";
+  navigate("download");
+  await refresh();
+}
 onMounted(async () => {
   window.addEventListener("hashchange", syncHash);
   await refresh();
@@ -411,12 +436,14 @@ onUnmounted(() => {
       </nav>
       <div class="header-actions">
         <span class="connection"
-          ><i :class="{ online: connected && worker }" />{{
-            connected
-              ? worker
-                ? t("Worker online")
-                : t("Worker offline")
-              : t("Reconnecting")
+          ><i :class="{ online: !demoMode && connected && worker }" />{{
+            demoMode
+              ? t("Demo mode")
+              : connected
+                ? worker
+                  ? t("Worker online")
+                  : t("Worker offline")
+                : t("Reconnecting")
           }}</span
         >
         <label class="language-picker">
@@ -431,6 +458,39 @@ onUnmounted(() => {
     </div>
   </header>
   <main id="main" tabindex="-1">
+    <section
+      v-if="demoMode"
+      class="demo-banner"
+      :aria-label="t('Interactive UI preview')"
+    >
+      <div>
+        <strong>{{ t("Interactive UI preview") }}</strong>
+        <p>
+          {{
+            t(
+              "Prepared samples and simulated tasks. Your files and links are not sent to a media-processing backend.",
+            )
+          }}
+        </p>
+      </div>
+      <div class="demo-actions">
+        <button class="text-button" :disabled="busy" @click="tryDemo('video')">
+          {{ t("Try video example") }}
+        </button>
+        <button class="text-button" :disabled="busy" @click="tryDemo('photos')">
+          {{ t("Try photo example") }}
+        </button>
+        <button class="text-button" @click="resetDemo">
+          {{ t("Reset demo") }}
+        </button>
+        <a
+          href="https://github.com/Denofix/youtube-downloader#start"
+          target="_blank"
+          rel="noreferrer"
+          >{{ t("Run the full service locally ↗") }}</a
+        >
+      </div>
+    </section>
     <div v-if="error" class="notice error" role="alert">
       <span
         ><strong>{{ t("Unable to continue") }}</strong
@@ -449,7 +509,11 @@ onUnmounted(() => {
     <div v-if="feedback" class="notice success" role="status">
       <Icon name="check" /><span>{{ text(feedback) }}</span>
     </div>
-    <div v-if="connected && !worker" class="worker-notice" role="status">
+    <div
+      v-if="!demoMode && connected && !worker"
+      class="worker-notice"
+      role="status"
+    >
       {{
         t(
           "The worker is offline. Tasks will wait in the queue until it starts.",
@@ -537,7 +601,7 @@ onUnmounted(() => {
             />
             <img
               v-else-if="analysis.items?.[0]?.preview_asset_id"
-              :src="`/api/assets/${analysis.items[0].preview_asset_id}/preview`"
+              :src="assetUrl(analysis.items[0].preview_asset_id!, 'preview')"
               :alt="t('Photo post preview')"
             />
             <div v-else class="thumbnail-placeholder">
@@ -620,7 +684,7 @@ onUnmounted(() => {
                   />
                   <img
                     v-if="item.preview_asset_id"
-                    :src="`/api/assets/${item.preview_asset_id}/preview`"
+                    :src="assetUrl(item.preview_asset_id!, 'preview')"
                     :alt="
                       t('{kind} {position} preview', {
                         kind:
@@ -715,9 +779,13 @@ onUnmounted(() => {
                         })
                       "
                     >
-                      <option :value="128">128 {{ t("kbps") }}</option>
+                      <option v-if="!demoMode" :value="128">
+                        128 {{ t("kbps") }}
+                      </option>
                       <option :value="192">192 {{ t("kbps") }}</option>
-                      <option :value="320">320 {{ t("kbps") }}</option>
+                      <option v-if="!demoMode" :value="320">
+                        320 {{ t("kbps") }}
+                      </option>
                     </select>
                   </label>
                   <p class="help">
@@ -830,9 +898,13 @@ onUnmounted(() => {
               <label v-if="profile === 'mp3'"
                 >{{ t("MP3 output bitrate")
                 }}<select v-model="bitrate">
-                  <option :value="128">128 {{ t("kbps") }}</option>
+                  <option v-if="!demoMode" :value="128">
+                    128 {{ t("kbps") }}
+                  </option>
                   <option :value="192">192 {{ t("kbps") }}</option>
-                  <option :value="320">320 {{ t("kbps") }}</option>
+                  <option v-if="!demoMode" :value="320">
+                    320 {{ t("kbps") }}
+                  </option>
                 </select></label
               >
               <p class="help">
@@ -897,8 +969,29 @@ onUnmounted(() => {
         </p>
       </div>
       <section class="workspace" :aria-label="t('Convert media')">
+        <div v-if="!asset && demoMode" class="demo-samples">
+          <h2>{{ t("Choose a prepared sample") }}</h2>
+          <p>
+            {{
+              t(
+                "This preview serves pre-generated results. Run the full service locally to convert your own files.",
+              )
+            }}
+          </p>
+          <div class="demo-actions">
+            <button class="primary" @click="demoSample('video')">
+              {{ t("Sample video") }}
+            </button>
+            <button class="primary" @click="demoSample('image1_png')">
+              {{ t("Sample image") }}
+            </button>
+            <button class="primary" @click="demoSample('gif')">
+              {{ t("Sample GIF") }}
+            </button>
+          </div>
+        </div>
         <div
-          v-if="!asset"
+          v-if="!asset && !demoMode"
           :class="['dropzone', { dragging }]"
           @dragover.prevent="dragging = true"
           @dragleave.prevent="dragging = false"
@@ -921,7 +1014,7 @@ onUnmounted(() => {
           </p>
           <button
             class="primary"
-            :disabled="busy || !!inspectingId"
+            :disabled="demoMode || busy || !!inspectingId"
             @click="fileInput?.click()"
           >
             {{ busy ? t("Uploading…") : t("Choose a file")
@@ -951,7 +1044,7 @@ onUnmounted(() => {
           type="file"
           :aria-label="t('Choose media file')"
           accept="video/*,audio/*,image/jpeg,image/png,image/webp,image/gif"
-          :disabled="busy || !!inspectingId"
+          :disabled="demoMode || busy || !!inspectingId"
           @change="upload(($event.target as HTMLInputElement).files)"
         />
         <template v-if="asset"
@@ -1006,7 +1099,7 @@ onUnmounted(() => {
               )
             }}
           </p>
-          <div v-if="output === 'gif'" class="gif-options">
+          <div v-if="output === 'gif' && !demoMode" class="gif-options">
             <label
               >{{ t("Start (seconds)")
               }}<input
@@ -1039,6 +1132,9 @@ onUnmounted(() => {
                 max="720"
             /></label>
           </div>
+          <p v-if="demoMode && output === 'gif'" class="help">
+            {{ t("GIF settings are fixed in this prepared sample.") }}
+          </p>
           <p v-if="asset.metadata.kind === 'animation'" class="help">
             {{
               t(
@@ -1063,9 +1159,9 @@ onUnmounted(() => {
           <label v-if="['mp3', 'm4a'].includes(output)" class="bitrate"
             >{{ t("Output bitrate")
             }}<select v-model="bitrate">
-              <option :value="128">128 {{ t("kbps") }}</option>
+              <option v-if="!demoMode" :value="128">128 {{ t("kbps") }}</option>
               <option :value="192">192 {{ t("kbps") }}</option>
-              <option :value="320">320 {{ t("kbps") }}</option>
+              <option v-if="!demoMode" :value="320">320 {{ t("kbps") }}</option>
             </select></label
           ><button
             class="primary wide"
@@ -1074,7 +1170,7 @@ onUnmounted(() => {
           >
             <Icon name="convert" :size="18" />{{ t("Add conversion to queue") }}
           </button>
-          <p class="help">
+          <p v-if="!demoMode" class="help">
             {{
               t("Source available until {date}.", {
                 date: date(asset.expires_at),
@@ -1209,7 +1305,7 @@ onUnmounted(() => {
                   task.result?.preview && task.result.asset_id && !task.expired
                 "
                 class="gif-preview"
-                :src="`/api/assets/${task.result.asset_id}/preview`"
+                :src="assetUrl(task.result.asset_id!, 'preview')"
                 :alt="t('Converted image preview')"
               />
               <div class="task-actions">
@@ -1237,7 +1333,8 @@ onUnmounted(() => {
                     <a
                       v-if="task.result.archive_asset_id"
                       class="primary small"
-                      :href="`/api/assets/${task.result.archive_asset_id}/file`"
+                      :href="assetUrl(task.result.archive_asset_id!)"
+                      :download="demoMode ? '' : undefined"
                       ><Icon name="download" :size="15" />{{
                         t("Download ZIP ({count})", {
                           count: task.result.files.length,
@@ -1248,7 +1345,8 @@ onUnmounted(() => {
                     ><a
                       v-if="task.kind !== 'inspect'"
                       class="primary small"
-                      :href="`/api/assets/${task.result.asset_id}/file`"
+                      :href="assetUrl(task.result.asset_id!)"
+                      :download="demoMode ? '' : undefined"
                       ><Icon name="download" :size="15" />{{
                         t("Download result")
                       }}</a
@@ -1290,7 +1388,7 @@ onUnmounted(() => {
                 >
                   <img
                     v-if="item.preview_asset_id"
-                    :src="`/api/assets/${item.preview_asset_id}/preview`"
+                    :src="assetUrl(item.preview_asset_id!, 'preview')"
                     :alt="
                       t(
                         task.result.kind === 'gallery'
@@ -1331,7 +1429,8 @@ onUnmounted(() => {
                   <div class="photo-result-actions">
                     <a
                       class="secondary small"
-                      :href="`/api/assets/${item.asset_id}/file`"
+                      :href="assetUrl(item.asset_id!)"
+                      :download="demoMode ? '' : undefined"
                       >{{
                         t(
                           task.result.kind === "gallery"
@@ -1362,7 +1461,7 @@ onUnmounted(() => {
         </section></template
       >
     </template>
-    <template v-if="tab === 'settings'">
+    <template v-if="tab === 'settings' && !demoMode">
       <div class="page-heading compact">
         <span class="eyebrow">{{ t("YOUR INSTANCE, AT A GLANCE") }}</span>
         <h1>
@@ -1466,6 +1565,36 @@ onUnmounted(() => {
           </dl>
         </section></template
       >
+    </template>
+    <template v-if="tab === 'settings' && demoMode">
+      <div class="page-heading compact">
+        <span class="eyebrow">{{ t("Demo mode") }}</span>
+        <h1>{{ t("About this preview") }}</h1>
+      </div>
+      <section class="workspace settings-panel">
+        <h2>{{ t("What you can try") }}</h2>
+        <p>
+          {{
+            t(
+              "Explore video and photo selection, prepared conversions, task history and English/Ukrainian localization. Demo history is stored in this browser and can be reset.",
+            )
+          }}
+        </p>
+        <h2>{{ t("The full self-hosted service") }}</h2>
+        <p>
+          {{
+            t(
+              "The Docker version runs a FastAPI API, a persistent SQLite queue and a separate FFmpeg/yt-dlp worker. This static preview has no live worker, server storage or external-media downloads.",
+            )
+          }}
+        </p>
+        <a
+          href="https://github.com/Denofix/youtube-downloader/tree/main/docs/users"
+          target="_blank"
+          rel="noreferrer"
+          >{{ t("Windows and Linux user guides (EN / UK) ↗") }}</a
+        >
+      </section>
     </template>
   </main>
   <footer>

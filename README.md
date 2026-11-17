@@ -10,6 +10,11 @@ Instagram [stage 4a](docs/media-service/stage-4a.md) passed a real 720 × 1280 H
 
 Pinterest [stage 5](docs/media-service/stage-5.md) adds individual image/GIF/video pins and bounded pin.it redirects. Live checks passed an unchanged JPEG, animated GIF and GIF → MP4, a short link, all six offered video formats up to 1080 × 1920, and MP3. The owner confirmed photo, video/audio and GIF delivery. A follow-up fixes separate HLS audio that lacked codec metadata, enabling MP3 for the reported pin; current CI and owner retest are tracked separately in the stage report.
 
+## Public interface preview
+
+[Open the interactive UI demo](https://download-convert.flareledger.fun).
+This is a static Vercel preview using prepared, generated media and simulated tasks in the browser. It demonstrates the interface in English and Ukrainian; it does not process uploaded files or download external media. Use the Docker version below for the full service. See the [preview deployment notes](docs/media-service/public-preview.md) for its boundaries and build configuration.
+
 ## Start
 
 Installation, configuration, usage and troubleshooting guides. Choose any installation folder; all project commands use the cloned repository directory.
