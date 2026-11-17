@@ -60,6 +60,10 @@ jobs:
           uv run --no-sync python scripts/check_pinterest_ui.py --chromium /usr/bin/chromium
           uv run --no-sync python scripts/check_localization_ui.py --chromium /usr/bin/chromium
           uv run --no-sync python scripts/check_converter_ui.py --chromium /usr/bin/chromium
+      - name: Static public preview checks
+        run: |
+          npm --prefix frontend run build:demo -- --outDir dist-demo
+          uv run --no-sync python scripts/check_demo_ui.py --chromium /usr/bin/chromium
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:

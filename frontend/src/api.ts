@@ -1,4 +1,13 @@
 import { locale, t } from "./i18n";
+import { sampleAssets } from "./demo-assets";
+
+export const demoMode = import.meta.env.MODE === "demo";
+export function assetUrl(id: string, variant: "file" | "preview" = "file") {
+  return demoMode
+    ? Object.values(sampleAssets).find((asset) => asset.id === id)?.url ||
+        "/demo-assets/unavailable"
+    : `/api/assets/${id}/${variant}`;
+}
 
 export class ApiError extends Error {
   code: string;
@@ -115,6 +124,17 @@ export type ServerSettings = {
   presets: { name: string; description: string }[];
 };
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  if (demoMode) {
+    const { demoRequest } = await import("./demo");
+    const result = await demoRequest(path, init);
+    if (result.status >= 400) {
+      const value = result.body as {
+        detail: { code: string; message: string };
+      };
+      throw new ApiError(value.detail.code, value.detail.message);
+    }
+    return result.body as T;
+  }
   let response: Response;
   try {
     response = await fetch("/api" + path, init);

@@ -38,3 +38,6 @@ cookies*.txt
 .ruff_cache/
 .ui-artifacts/
 .playwright/
+
+# Disposable public-preview test build
+frontend/dist-demo/

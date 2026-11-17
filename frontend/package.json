@@ -8,6 +8,7 @@
     "dev": "vite --host 127.0.0.1",
     "typecheck": "vue-tsc --noEmit",
     "build": "npm run typecheck && vite build",
+    "build:demo": "npm run typecheck && vite build --mode demo",
     "format:check": "prettier --check src tests index.html vite.config.ts tsconfig.json package.json"
   },
   "dependencies": {

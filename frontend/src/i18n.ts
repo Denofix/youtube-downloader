@@ -5,6 +5,32 @@ export const languageStorageKey = "download-convert.language";
 
 // English messages are stable keys. Source titles, filenames and codec IDs are data.
 export const ukrainian = {
+  "Demo mode": "Деморежим",
+  "Interactive UI preview": "Інтерактивний огляд інтерфейсу",
+  "Prepared samples and simulated tasks. Your files and links are not sent to a media-processing backend.":
+    "Готові приклади та імітація завдань. Ваші файли й посилання не надсилаються на сервер обробки медіа.",
+  "Try video example": "Спробувати відео",
+  "Try photo example": "Спробувати фото",
+  "Reset demo": "Скинути демо",
+  "Run the full service locally \u2197": "Запустити повний сервіс локально ↗",
+  "Choose a prepared sample": "Оберіть готовий приклад",
+  "This preview serves pre-generated results. Run the full service locally to convert your own files.":
+    "Цей огляд використовує заздалегідь підготовлені результати. Для власних файлів запустіть повний сервіс локально.",
+  "Sample video": "Приклад відео",
+  "Sample image": "Приклад зображення",
+  "Sample GIF": "Приклад GIF",
+  "GIF settings are fixed in this prepared sample.":
+    "У цьому готовому прикладі параметри GIF фіксовані.",
+  "About this preview": "Про цей огляд",
+  "What you can try": "Що можна спробувати",
+  "Explore video and photo selection, prepared conversions, task history and English/Ukrainian localization. Demo history is stored in this browser and can be reset.":
+    "Спробуйте вибір відео й фото, готові конвертації, історію завдань та англійську й українську локалізацію. Історія демо зберігається в цьому браузері; її можна скинути.",
+  "The full self-hosted service": "Повний сервіс на власному сервері",
+  "The Docker version runs a FastAPI API, a persistent SQLite queue and a separate FFmpeg/yt-dlp worker. This static preview has no live worker, server storage or external-media downloads.":
+    "Docker-версія використовує FastAPI API, постійну чергу SQLite та окремий обробник FFmpeg/yt-dlp. Цей статичний огляд не має активного обробника, серверного сховища чи завантаження медіа із зовнішніх платформ.",
+  "Windows and Linux user guides (EN / UK) \u2197":
+    "Посібники для Windows і Linux (EN / UK) ↗",
+
   download: "Завантаження",
   convert: "Конвертація",
   tasks: "Завдання",
@@ -357,6 +383,8 @@ export function operationLabel(
 }
 
 const errors: Record<string, string> = {
+  demo_only:
+    "Цей огляд використовує готові приклади. Натисніть кнопку прикладу або запустіть повний сервіс для власних посилань і файлів.",
   access_required:
     "Для цього джерела потрібен доступ. Власник може налаштувати cookie на сервері та повторити аналіз.",
   analysis_expired: "Термін дії аналізу минув. Проаналізуйте посилання знову.",
